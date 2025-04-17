@@ -174,8 +174,8 @@ const config = {
       }
     }
   },
-  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?\n// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n\ngenerator client {\n  provider = \"prisma-client-js\"\n  output   = \"../src/generated/prisma\"\n}\n\ndatasource db {\n  provider = \"mysql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel Blog {\n  id        Int      @id @default(autoincrement())\n  title     String\n  content   String   @db.Text\n  slug      String   @unique\n  published Boolean  @default(false)\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n  author    String\n  excerpt   String?  @db.Text\n  tags      String?\n}\n",
-  "inlineSchemaHash": "1ac956c736f00e3022e15cc65a957b89e5340270d6765bf8aad18ea2a6cdbecf",
+  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\ngenerator client {\n  provider = \"prisma-client-js\"\n  output   = \"../src/generated/prisma\"\n}\n\ndatasource db {\n  provider = \"mysql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel Blog {\n  id        Int      @id @default(autoincrement())\n  title     String\n  content   String   @db.Text\n  slug      String   @unique\n  published Boolean  @default(false)\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n  author    String\n  excerpt   String?  @db.Text\n  tags      String?\n}\n",
+  "inlineSchemaHash": "e9eeeb310db96a20f1eaae6b7e624e6b59b51af0cc54d593f4c13c6f310b4f7d",
   "copyEngine": true
 }
 

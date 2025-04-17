@@ -1,11 +1,37 @@
 import { NextResponse } from "next/server";
 import { posts } from "../route";
+import { PrismaClient } from '@/generated/prisma'
+
+const prisma = new PrismaClient()
 
 export async function GET(
   request: Request,
   { params }: { params: { slug: string } }
 ) {
   try {
+    // Try to fetch from database first
+    const dbPost = await prisma.blog.findUnique({
+      where: { slug: params.slug }
+    });
+    
+    if (dbPost) {
+      // Transform to match expected format
+      const post = {
+        id: dbPost.id.toString(),
+        title: dbPost.title,
+        shortDescription: dbPost.excerpt || '',
+        author: dbPost.author,
+        date: dbPost.createdAt.toISOString(),
+        coverImage: "/img/frontendbg.png", // Default image
+        slug: dbPost.slug,
+        category: dbPost.tags || 'Uncategorized',
+        content: dbPost.content
+      };
+      
+      return NextResponse.json(post);
+    }
+
+    // Fallback to static posts if not found in database
     const post = posts.find((post) => post.slug === params.slug);
 
     if (!post) {
