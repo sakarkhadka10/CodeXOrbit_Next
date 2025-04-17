@@ -1,26 +1,75 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+h1 {
+  @apply font-bold text-shadow-2xs;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+p {
+  @apply text-[1rem] font-normal text-gray-600 text-shadow-2xs;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+input {
+  @apply w-full px-4 py-2 font-medium border-2 border-gray-200 rounded-lg focus:border-amber-500 focus:outline-none;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+h2 {
+  @apply text-4xl font-bold text-gray-800 mb-4;
+}
+
+h5 {
+  @apply text-2xl font-bold text-gray-800 my-4 underline;
+}
+
+ul {
+  @apply list-disc list-inside my-2;
+}
+
+/* Code block styling */
+.code-block-container {
+  @apply relative my-6;
+}
+
+.code-block-container pre {
+  @apply m-0 rounded-b-lg bg-[#1e1e1e] text-white font-mono text-sm leading-6;
+}
+
+.code-block-container pre code {
+  @apply block p-4 overflow-x-auto;
+}
+
+/* Inline code styling (not in pre blocks) */
+:not(pre) > code {
+  @apply bg-gray-100 text-amber-600 px-1.5 py-0.5 rounded-md text-sm font-mono;
+}
+
+/* Syntax highlighting theme overrides */
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
+  @apply text-gray-500;
+}
+
+.token.function {
+  @apply text-blue-400;
+}
+
+.token.keyword {
+  @apply text-purple-400;
+}
+
+.token.string {
+  @apply text-green-400;
+}
+
+.token.number {
+  @apply text-orange-400;
+}
+
+.token.operator {
+  @apply text-gray-300;
+}
+
+.token.punctuation {
+  @apply text-gray-400;
 }
