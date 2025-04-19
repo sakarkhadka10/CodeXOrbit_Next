@@ -3,270 +3,239 @@
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { FaArrowLeft } from 'react-icons/fa'
+import { FaArrowLeft, FaSave, FaCode } from 'react-icons/fa'
+import Script from 'next/script'
 
 export default function CreateBlogPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
-  const editorRef = useRef<HTMLTextAreaElement>(null)
+  const editorRef = useRef<HTMLDivElement>(null)
+  const [categories, setCategories] = useState([]) // Add categories state
   const [formData, setFormData] = useState({
     title: '',
     content: '',
     slug: '',
     author: '',
-    excerpt: '',
+    shortDescription: '', // Changed from excerpt
+    category: '', // Added category
     tags: '',
+    coverImage: '', // Added coverImage
     published: false,
   })
+  const [editorLoaded, setEditorLoaded] = useState(false)
 
-  // Common HTML tags for suggestions
-  const commonTags = [
-    { tag: 'h2', description: 'Heading 2' },
-    { tag: 'h5', description: 'Heading 5' },
-    { tag: 'p', description: 'Paragraph' },
-    { tag: 'a', description: 'Link' },
-    { tag: 'img', description: 'Image' },
-    { tag: 'ul', description: 'Unordered List' },
-    { tag: 'ol', description: 'Ordered List' },
-    { tag: 'li', description: 'List Item' },
-    { tag: 'blockquote', description: 'Blockquote' },
-    { tag: 'pre', description: 'Preformatted Text' },
-    { tag: 'code', description: 'Code' },
-    { tag: 'strong', description: 'Bold Text' },
-    { tag: 'em', description: 'Italic Text' },
-  ]
-
-  // Add these new states and refs
-  const [showSuggestions, setShowSuggestions] = useState(false)
-  const [suggestions, setSuggestions] = useState<Array<{tag: string, description: string}>>([])
-  const [cursorPosition, setCursorPosition] = useState({ top: 0, left: 0 })
-  const [currentWord, setCurrentWord] = useState('')
-  const suggestionsRef = useRef<HTMLDivElement>(null)
-
-  // Handle auto-closing tags
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    const textarea = e.currentTarget
-    const { selectionStart, selectionEnd, value } = textarea
-    
-    // Auto-close tags when typing '<'
-    if (e.key === '<') {
-      // We'll handle this in the keyup event
-      return
-    }
-    
-    // Insert closing tag when typing '>'
-    if (e.key === '>') {
-      const textBeforeCursor = value.substring(0, selectionStart)
-      const lastOpeningTag = textBeforeCursor.lastIndexOf('<')
-      
-      if (lastOpeningTag !== -1) {
-        const tagContent = textBeforeCursor.substring(lastOpeningTag + 1)
-        
-        // Don't auto-close if it's a closing tag, self-closing tag, or comment
-        if (tagContent.startsWith('/') || tagContent.endsWith('/') || tagContent.startsWith('!--')) {
-          return
-        }
-        
-        // Extract tag name
-        const tagName = tagContent.split(' ')[0]
-        
-        // Skip auto-closing for void elements
-        const voidElements = ['img', 'input', 'br', 'hr', 'meta', 'link']
-        if (voidElements.includes(tagName)) {
-          return
-        }
-        
-        // Insert closing tag
-        const newPosition = selectionStart + 1
-        const newValue = 
-          value.substring(0, selectionStart + 1) + 
-          `</${tagName}>` + 
-          value.substring(selectionEnd)
-        
-        setFormData(prev => ({ ...prev, content: newValue }))
-        
-        // Set cursor position after the next tick
-        setTimeout(() => {
-          textarea.selectionStart = newPosition
-          textarea.selectionEnd = newPosition
-          textarea.focus()
-        }, 0)
-      }
-    }
-    
-    // Tab key for indentation
-    if (e.key === 'Tab') {
-      e.preventDefault()
-      const newValue = 
-        value.substring(0, selectionStart) + 
-        '  ' + 
-        value.substring(selectionEnd)
-      
-      setFormData(prev => ({ ...prev, content: newValue }))
-      
-      // Set cursor position
-      setTimeout(() => {
-        textarea.selectionStart = selectionStart + 2
-        textarea.selectionEnd = selectionStart + 2
-      }, 0)
-    }
-  }
-
-  // Insert tag from suggestion
-  const insertTag = (tag: string) => {
-    if (!editorRef.current) return
-    
-    const textarea = editorRef.current
-    const { selectionStart, selectionEnd, value } = textarea
-    const selectedText = value.substring(selectionStart, selectionEnd)
-    
-    // Void elements don't need closing tags
-    const voidElements = ['img', 'input', 'br', 'hr', 'meta', 'link']
-    const isVoidElement = voidElements.includes(tag)
-    
-    let insertedContent
-    if (isVoidElement) {
-      insertedContent = `<${tag} />`
-    } else if (selectedText) {
-      insertedContent = `<${tag}>${selectedText}</${tag}>`
-    } else {
-      insertedContent = `<${tag}></${tag}>`
-    }
-    
-    const newValue = 
-      value.substring(0, selectionStart) + 
-      insertedContent + 
-      value.substring(selectionEnd)
-    
-    setFormData(prev => ({ ...prev, content: newValue }))
-    
-    // Set cursor position
-    const newPosition = isVoidElement 
-      ? selectionStart + tag.length + 3
-      : selectedText 
-        ? selectionStart + tag.length + 2 + selectedText.length
-        : selectionStart + tag.length + 2
-    
-    setTimeout(() => {
-      textarea.focus()
-      textarea.selectionStart = newPosition
-      textarea.selectionEnd = newPosition
-    }, 0)
-  }
-
-  // Insert code block template
-  const insertCodeBlock = () => {
-    if (!editorRef.current) return
-    
-    const textarea = editorRef.current
-    const { selectionStart, selectionEnd, value } = textarea
-    const selectedText = value.substring(selectionStart, selectionEnd)
-    
-    const codeTemplate = selectedText 
-      ? `<pre><code>${selectedText}</code></pre>`
-      : `<pre><code>// Your code here\n</code></pre>`
-    
-    const newValue = 
-      value.substring(0, selectionStart) + 
-      codeTemplate + 
-      value.substring(selectionEnd)
-    
-    setFormData(prev => ({ ...prev, content: newValue }))
-    
-    // Set cursor position inside the code block
-    const newPosition = selectedText
-      ? selectionStart + 11 + selectedText.length
-      : selectionStart + 11 + 16
-    
-    setTimeout(() => {
-      textarea.focus()
-      textarea.selectionStart = newPosition
-      textarea.selectionEnd = newPosition
-    }, 0)
-  }
-
-  // Add this function to handle showing suggestions
-  const handleInput = (e: React.FormEvent<HTMLTextAreaElement>) => {
-    const textarea = e.currentTarget
-    const { value, selectionStart } = textarea
-    
-    // Find the current word being typed
-    const textBeforeCursor = value.substring(0, selectionStart)
-    const match = textBeforeCursor.match(/<([a-zA-Z]*)$/)
-    
-    if (match) {
-      const word = match[1].toLowerCase()
-      setCurrentWord(word)
-      
-      // Filter suggestions based on current input
-      const filtered = commonTags.filter(item => 
-        item.tag.toLowerCase().startsWith(word)
-      )
-      
-      if (filtered.length > 0) {
-        setSuggestions(filtered)
-        setShowSuggestions(true)
-        
-        // Calculate position for suggestions popup
-        const textareaRect = textarea.getBoundingClientRect()
-        const lineHeight = parseInt(getComputedStyle(textarea).lineHeight)
-        const lines = textBeforeCursor.split('\n')
-        const currentLineIndex = lines.length - 1
-        
-        // Approximate cursor position
-        const top = textareaRect.top + (currentLineIndex * lineHeight) - textarea.scrollTop
-        const left = textareaRect.left + (match.index * 8) // Approximate character width
-        
-        setCursorPosition({ top, left })
-      } else {
-        setShowSuggestions(false)
-      }
-    } else {
-      setShowSuggestions(false)
-    }
-  }
-
-  // Add this function to handle suggestion selection
-  const selectSuggestion = (tag: string) => {
-    if (!editorRef.current) return
-    
-    const textarea = editorRef.current
-    const { value, selectionStart } = textarea
-    const textBeforeCursor = value.substring(0, selectionStart)
-    const match = textBeforeCursor.match(/<([a-zA-Z]*)$/)
-    
-    if (match) {
-      const startPos = selectionStart - match[1].length
-      const newValue = 
-        value.substring(0, startPos) + 
-        tag + 
-        value.substring(selectionStart)
-    
-      setFormData(prev => ({ ...prev, content: newValue }))
-    
-      // Set cursor position after the tag
-      setTimeout(() => {
-        textarea.focus()
-        const newPosition = startPos + tag.length
-        textarea.selectionStart = newPosition
-        textarea.selectionEnd = newPosition
-      }, 0)
-    }
-    
-    setShowSuggestions(false)
-  }
-
-  // Add this effect to handle clicks outside suggestions
+  // Add this useEffect to fetch categories
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node)) {
-        setShowSuggestions(false)
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch('/api/categories')
+        if (response.ok) {
+          const data = await response.json()
+          setCategories(data)
+        }
+      } catch (error) {
+        console.error('Error fetching categories:', error)
       }
     }
-    
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
+
+    fetchCategories()
+  }, [])
+
+  // Initialize Summernote with optimizations when scripts are loaded
+  useEffect(() => {
+    if (typeof window !== 'undefined' && editorLoaded && editorRef.current) {
+      // @ts-ignore - jQuery and Summernote are loaded via script tags
+      if (window.jQuery && window.jQuery.summernote) {
+        // @ts-ignore
+        const $ = window.jQuery
+        
+        // Add custom button for code blocks
+        $.summernote.options.buttons.codeBlock = function(context) {
+          return $.summernote.ui.button({
+            contents: '<i class="fa fa-code"></i>',
+            tooltip: 'Insert Code Block',
+            click: function() {
+              // Create a single code block with placeholder text
+              const codeBlock = '<pre><code>// Your code here</code></pre>';
+              
+              // Insert the code block
+              context.invoke('editor.pasteHTML', codeBlock);
+              
+              // Position cursor inside the code block
+              const range = document.createRange();
+              const selection = window.getSelection();
+              const preElements = context.layoutInfo.editable.find('pre code');
+              
+              if (preElements.length) {
+                // Get the last code element
+                const lastElement = preElements[preElements.length - 1];
+                
+                // Select all placeholder text so user can immediately type over it
+                range.selectNodeContents(lastElement);
+                selection?.removeAllRanges();
+                selection?.addRange(range);
+                
+                // Focus the editor
+                context.invoke('editor.focus');
+              }
+            }
+          }).render();
+        }
+
+        // Add this function to handle Enter key in code blocks
+        function setupCodeBlockEnterHandling($editor) {
+          $editor.parent().on('keydown', function(e) {
+            // Find if cursor is inside a code block
+            const selection = window.getSelection();
+            if (!selection || selection.rangeCount === 0) return;
+            
+            const range = selection.getRangeAt(0);
+            let node = range.startContainer;
+            
+            // If it's a text node, get its parent
+            if (node.nodeType === 3) {
+              node = node.parentNode;
+            }
+            
+            // Check if we're inside a code block
+            let insideCodeBlock = false;
+            let preElement = null;
+            
+            while (node && !insideCodeBlock) {
+              if (node.nodeName === 'CODE' && node.parentNode?.nodeName === 'PRE') {
+                insideCodeBlock = true;
+                preElement = node.parentNode;
+                break;
+              }
+              node = node.parentNode;
+            }
+            
+            // Handle Enter key inside code blocks
+            if (insideCodeBlock && e.keyCode === 13) {
+              e.preventDefault();
+              
+              // Create a paragraph element for normal text
+              const p = document.createElement('p');
+              p.innerHTML = '<br>';
+              
+              // Insert it after the code block
+              if (preElement && preElement.parentNode) {
+                preElement.parentNode.insertBefore(p, preElement.nextSibling);
+                
+                // Move cursor to the new paragraph
+                const newRange = document.createRange();
+                newRange.setStart(p, 0);
+                newRange.collapse(true);
+                
+                selection.removeAllRanges();
+                selection.addRange(newRange);
+                
+                // Focus on the editor
+                $editor.focus();
+              }
+              
+              return false;
+            }
+          });
+        }
+
+        // Initialize editor with optimizations
+        const $editor = $(editorRef.current)
+        $editor.summernote({
+          height: 500,
+          focus: true,
+          fontNames: [
+            'Arial', 'Arial Black', 'Comic Sans MS', 'Courier New', 
+            'Helvetica', 'Impact', 'Tahoma', 'Times New Roman', 'Verdana', 
+            'Roboto', 'Merriweather', 'Fira Code', 'JetBrains Mono'
+          ],
+          fontNamesIgnoreCheck: ['Roboto', 'Merriweather', 'Fira Code', 'JetBrains Mono'],
+          toolbar: [
+            ['style', ['style']],
+            ['font', ['bold', 'underline', 'clear', 'fontname']],
+            ['color', ['color']],
+            ['para', ['ul', 'ol', 'paragraph']],
+            ['table', ['table']],
+            ['insert', ['link', 'picture', 'video']],
+            ['custom', ['codeBlock']],
+            ['view', ['fullscreen', 'codeview', 'help']],
+          ],
+          callbacks: {
+            onChange: function(contents: string) {
+              setFormData(prev => ({ ...prev, content: contents }))
+            },
+            onInit: function() {
+              // Add custom styles for the editor
+              $('head').append(`
+                <style>
+                  .note-editor {
+                    border-radius: 0.375rem;
+                    border-color: rgb(209, 213, 219) !important;
+                  }
+                  .note-editor.note-frame .note-editing-area .note-editable {
+                    font-family: 'Roboto', sans-serif;
+                    font-size: 16px;
+                    line-height: 1.6;
+                    color: #374151;
+                  }
+                  .note-editor pre {
+                    background-color: #1e1e1e;
+                    color: #e9e9e9;
+                    border-radius: 0.375rem;
+                    padding: 1rem;
+                    font-family: 'Fira Code', 'JetBrains Mono', monospace;
+                  }
+                  .note-editor pre code {
+                    font-family: 'Fira Code', 'JetBrains Mono', monospace;
+                    font-size: 14px;
+                    line-height: 1.5;
+                    white-space: pre;
+                    display: block;
+                  }
+                </style>
+              `);
+              
+              // Setup code block enter handling
+              setupCodeBlockEnterHandling($editor);
+            }
+          },
+          codemirror: { // CodeMirror options for code view
+            theme: 'monokai',
+            lineNumbers: true,
+            lineWrapping: true,
+            tabSize: 2
+          }
+        })
+        
+        // Set initial content if any
+        if (formData.content) {
+          $editor.summernote('code', formData.content)
+        }
+        
+        // Cleanup function
+        return () => {
+          $editor.summernote('destroy')
+        }
+      }
+    }
+  }, [editorLoaded, editorRef])
+
+  // Add custom fonts
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const fontLinks = [
+        'https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap',
+        'https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&display=swap',
+        'https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap',
+        'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap'
+      ]
+      
+      fontLinks.forEach(href => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = href
+        document.head.appendChild(link)
+      })
     }
   }, [])
 
@@ -275,21 +244,41 @@ export default function CreateBlogPage() {
     setLoading(true)
     
     try {
-      const response = await fetch('/api/blog', {
+      // Log the data being sent
+      const postData = {
+        title: formData.title,
+        content: formData.content,
+        slug: formData.slug,
+        author: formData.author,
+        excerpt: formData.shortDescription, // Map shortDescription to excerpt in API
+        tags: formData.tags,
+        // Only include categoryId if it's not empty
+        ...(formData.category ? { categoryId: formData.category } : {})
+      };
+      console.log('Sending post data:', postData);
+      
+      const response = await fetch('/api/posts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(postData),
       })
 
-      if (response.ok) {
-        router.push('/admin')
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Server error:', errorData);
+        throw new Error(`Server responded with ${response.status}: ${JSON.stringify(errorData)}`);
       }
+      
+      const result = await response.json();
+      console.log('Post created successfully:', result);
+      router.push('/admin');
     } catch (error) {
-      console.error('Error creating blog post:', error)
+      console.error('Error creating blog post:', error);
+      alert('Failed to create post. See console for details.');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
@@ -316,30 +305,126 @@ export default function CreateBlogPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8 flex items-center">
-          <Link 
-            href="/admin" 
-            className="flex items-center text-blue-600 hover:text-blue-800"
-          >
-            <FaArrowLeft className="mr-2" /> Back to Dashboard
-          </Link>
-        </div>
-        
-        <div className="bg-white shadow-md rounded-lg p-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-6">Create New Blog Post</h1>
+    <>
+      {/* Load required scripts */}
+      <Script 
+        src="https://code.jquery.com/jquery-3.6.0.min.js"
+        strategy="beforeInteractive"
+      />
+      <Script 
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+        strategy="afterInteractive"
+      />
+      <Script 
+        src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.js"
+        strategy="afterInteractive"
+        onLoad={() => setEditorLoaded(true)}
+      />
+      <Script 
+        src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"
+        strategy="afterInteractive"
+      />
+      <Script 
+        src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/htmlmixed/htmlmixed.min.js"
+        strategy="afterInteractive"
+      />
+      <Script 
+        src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/xml/xml.min.js"
+        strategy="afterInteractive"
+      />
+      <Script 
+        src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"
+        strategy="afterInteractive"
+      />
+      <Script 
+        src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/css/css.min.js"
+        strategy="afterInteractive"
+      />
+      <Script 
+        src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css"
+        strategy="afterInteractive"
+      />
+      
+      {/* Load required CSS */}
+      <link 
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" 
+        rel="stylesheet"
+      />
+      <link 
+        href="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.css" 
+        rel="stylesheet"
+      />
+      <link
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        rel="stylesheet"
+      />
+      <link
+        href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css"
+        rel="stylesheet"
+      />
+      <link
+        href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css"
+        rel="stylesheet"
+      />
+      
+      <div className="min-h-screen bg-gray-50 py-10">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-8 flex items-center">
+            <Link 
+              href="/admin" 
+              className="flex items-center text-blue-600 hover:text-blue-800"
+            >
+              <FaArrowLeft className="mr-2" /> Back to Dashboard
+            </Link>
+          </div>
           
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <div className="bg-white shadow-md rounded-lg p-6">
+            <h1 className="text-2xl font-bold text-gray-900 mb-6">Create New Blog Post</h1>
+            
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                  <input
+                    type="text"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleChange}
+                    onBlur={() => !formData.slug && generateSlug()}
+                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Slug
+                    <button
+                      type="button"
+                      onClick={generateSlug}
+                      className="ml-2 text-xs text-blue-600 hover:text-blue-800"
+                    >
+                      Generate from title
+                    </button>
+                  </label>
+                  <input
+                    type="text"
+                    name="slug"
+                    value={formData.slug}
+                    onChange={handleChange}
+                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  />
+                </div>
+              </div>
+              
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Author</label>
                 <input
                   type="text"
-                  name="title"
-                  value={formData.title}
+                  name="author"
+                  value={formData.author}
                   onChange={handleChange}
-                  onBlur={() => !formData.slug && generateSlug()}
                   className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                   required
                 />
@@ -347,169 +432,170 @@ export default function CreateBlogPage() {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Slug
-                  <button
-                    type="button"
-                    onClick={generateSlug}
-                    className="ml-2 text-xs text-blue-600 hover:text-blue-800"
-                  >
-                    Generate from title
-                  </button>
+                  Short Description <span className="text-xs text-gray-500">(max 100 characters)</span>
                 </label>
-                <input
-                  type="text"
-                  name="slug"
-                  value={formData.slug}
+                <textarea
+                  name="shortDescription"
+                  value={formData.shortDescription}
                   onChange={handleChange}
                   className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                  required
+                  rows={3}
+                  maxLength={100}
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  {formData.shortDescription.length}/100 characters
+                </p>
+              </div>
+              
+              {/* Optimized Summernote Editor */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Content</label>
+                <div ref={editorRef} className="summernote"></div>
+                <div className="mt-2 flex items-center text-sm text-gray-500">
+                  <FaCode className="mr-2" />
+                  <span>Use the code block button in the toolbar to add syntax-highlighted code snippets</span>
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Tags (comma-separated)</label>
+                <input
+                  type="text"
+                  name="tags"
+                  value={formData.tags}
+                  onChange={handleChange}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Author</label>
-              <input
-                type="text"
-                name="author"
-                value={formData.author}
-                onChange={handleChange}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                required
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Excerpt</label>
-              <textarea
-                name="excerpt"
-                value={formData.excerpt}
-                onChange={handleChange}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                rows={3}
-              />
-              <p className="mt-1 text-sm text-gray-500">
-                A short summary of your blog post (optional)
-              </p>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Content</label>
-              <div className="mb-2 flex flex-wrap gap-2">
-                {commonTags.map(({ tag, description }) => (
-                  <button
-                    key={tag}
-                    type="button"
-                    onClick={() => insertTag(tag)}
-                    className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded-md text-gray-700"
-                    title={description}
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Cover Image URL</label>
+                <input
+                  type="url"
+                  name="coverImage"
+                  value={formData.coverImage}
+                  onChange={handleChange}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="https://example.com/image.jpg"
+                />
+                {formData.coverImage && (
+                  <div className="mt-2">
+                    <p className="text-xs text-gray-500 mb-1">Preview:</p>
+                    <img 
+                      src={formData.coverImage} 
+                      alt="Cover preview" 
+                      className="h-32 object-cover rounded-md border border-gray-200"
+                      onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+                        const target = e.currentTarget;
+                        target.src = "/img/placeholder.png";
+                        target.classList.add("border-red-500");
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <div className="relative">
+                  <select
+                    name="category"
+                    value={formData.category}
+                    onChange={handleChange}
+                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 appearance-none"
+                    required
                   >
-                    {tag}
-                  </button>
-                ))}
+                    <option value="">Select a category</option>
+                    {categories.map(category => (
+                      <option key={category.id} value={category.slug}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                  </div>
+                </div>
+                <div className="mt-2 flex justify-between">
+                  <span className="text-xs text-gray-500">
+                    Can't find your category?
+                  </span>
+                  <div className="flex space-x-3">
+                    <button 
+                      type="button"
+                      onClick={() => setShowCategoryModal(true)}
+                      className="text-xs text-blue-600 hover:text-blue-800"
+                    >
+                      Add New
+                    </button>
+                    <Link 
+                      href="/admin/categories"
+                      className="text-xs text-blue-600 hover:text-blue-800"
+                    >
+                      Manage Categories
+                    </Link>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="published"
+                  name="published"
+                  checked={formData.published}
+                  onChange={handleChange}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label htmlFor="published" className="ml-2 block text-sm text-gray-900">
+                  Publish immediately
+                </label>
+              </div>
+              
+              <div className="flex justify-end">
                 <button
-                  type="button"
-                  onClick={insertCodeBlock}
-                  className="px-2 py-1 text-xs bg-amber-100 hover:bg-amber-200 rounded-md text-amber-700"
-                  title="Insert code block"
+                  type="submit"
+                  disabled={loading}
+                  className="flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
                 >
-                  code block
+                  {loading ? 'Creating...' : (
+                    <>
+                      <FaSave className="mr-2" />
+                      Create Post
+                    </>
+                  )}
                 </button>
               </div>
-              <textarea
-                ref={editorRef}
-                name="content"
-                value={formData.content}
-                onChange={handleChange}
-                onKeyDown={handleKeyDown}
-                onInput={handleInput}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 font-mono"
-                rows={20}
-                required
-                placeholder="<h1>Your Title</h1>
-<p>Your content here...</p>
-
-<pre><code>// Your code block
-function example() {
-  return 'Hello World';
-}</code></pre>"
-              />
-              <p className="mt-1 text-sm text-gray-500">
-                Click tag buttons to insert, or type HTML directly. Tags auto-close when you type "&gt;".
-              </p>
-            </div>
-            
-            {showSuggestions && (
-              <div 
-                ref={suggestionsRef}
-                className="absolute z-10 bg-white shadow-lg rounded-md border border-gray-200 max-h-60 overflow-y-auto"
-                style={{ 
-                  top: `${cursorPosition.top + 20}px`, 
-                  left: `${cursorPosition.left}px` 
-                }}
-              >
-                <ul className="py-1">
-                  {suggestions.map(({ tag, description }) => (
-                    <li 
-                      key={tag}
-                      onClick={() => selectSuggestion(tag)}
-                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center"
-                    >
-                      <span className="font-mono text-blue-600">{tag}</span>
-                      <span className="ml-2 text-gray-600 text-sm">{description}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Tags (comma-separated)</label>
-              <input
-                type="text"
-                name="tags"
-                value={formData.tags}
-                onChange={handleChange}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                placeholder="e.g. nextjs, react, tutorial"
-              />
-            </div>
-            
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="published"
-                name="published"
-                checked={formData.published}
-                onChange={handleChange}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-              />
-              <label htmlFor="published" className="ml-2 block text-sm text-gray-700">
-                Publish immediately
-              </label>
-            </div>
-            
-            <div className="flex justify-end gap-3">
-              <Link
-                href="/admin"
-                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-              >
-                Cancel
-              </Link>
-              <button
-                type="submit"
-                disabled={loading}
-                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-              >
-                {loading ? 'Saving...' : 'Save Post'}
-              </button>
-            </div>
-          </form>
+            </form>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   )
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

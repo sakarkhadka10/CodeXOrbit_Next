@@ -100,4 +100,68 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-} 
+}
+
+// POST /api/posts - Create a new post
+export async function POST(request: NextRequest) {
+  try {
+    const data = await request.json();
+    console.log('Received post data:', data);
+    
+    // Ensure required fields are present
+    if (!data.title || !data.content || !data.slug) {
+      return NextResponse.json(
+        { error: 'Missing required fields: title, content, or slug' },
+        { status: 400 }
+      );
+    }
+    
+    // Prepare data object without categoryId first
+    const createData = {
+      title: data.title,
+      content: data.content,
+      slug: data.slug,
+      author: data.author || 'Anonymous',
+      excerpt: data.excerpt || '',
+      tags: data.tags || '',
+      published: Boolean(data.published)
+    };
+    
+    // Only add categoryId if it exists and is not empty
+    if (data.categoryId && data.categoryId.trim() !== '') {
+      // Check if the category exists
+      const category = await prisma.category.findUnique({
+        where: { id: data.categoryId }
+      });
+      
+      if (category) {
+        createData.categoryId = data.categoryId;
+      } else {
+        console.log(`Category with ID ${data.categoryId} not found, creating post without category`);
+      }
+    }
+    
+    // Create the blog post
+    const blog = await prisma.blog.create({
+      data: createData
+    });
+    
+    console.log('Created blog post:', blog);
+    return NextResponse.json(blog, { status: 201 });
+  } catch (error) {
+    console.error('Error creating blog post:', error);
+    
+    // Check for specific Prisma errors
+    if (error.code === 'P2002') {
+      return NextResponse.json(
+        { error: 'A post with this slug already exists' },
+        { status: 409 }
+      );
+    }
+    
+    return NextResponse.json(
+      { error: 'Failed to create blog post', details: error.message },
+      { status: 500 }
+    );
+  }
+}

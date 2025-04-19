@@ -11,6 +11,15 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Category {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  blogs     Blog[]
+}
+
 model Blog {
   id        Int      @id @default(autoincrement())
   title     String
@@ -22,4 +31,7 @@ model Blog {
   author    String
   excerpt   String?  @db.Text
   tags      String?
+  category  Category? @relation(fields: [categoryId], references: [id])
+  categoryId String?
 }
+

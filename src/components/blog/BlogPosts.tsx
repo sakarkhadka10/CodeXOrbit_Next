@@ -254,7 +254,11 @@ export default function BlogPosts() {
                           </span>
                           <span className="flex items-center">
                             <FaCalendarAlt className="mr-1.5 text-amber-500" />
-                            {post.date}
+                            {new Date(post.date).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })}
                           </span>
                         </div>
                       </div>

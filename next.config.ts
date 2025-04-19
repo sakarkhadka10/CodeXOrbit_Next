@@ -8,7 +8,9 @@ const nextConfig = {
       },
     ],
   },
-  /* config options here */
+  // Remove all experimental features
+  poweredByHeader: false,
 };
 
 export default nextConfig;
+
