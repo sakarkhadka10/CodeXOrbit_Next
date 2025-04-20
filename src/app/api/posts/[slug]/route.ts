@@ -11,9 +11,10 @@ export async function GET(
   try {
     // Try to fetch from database first
     const dbPost = await prisma.blog.findUnique({
-      where: { slug: params.slug }
+      where: { slug: params.slug },
+      include: { category: true } // Include the related category
     });
-    
+
     if (dbPost) {
       // Transform to match expected format
       const post = {
@@ -24,10 +25,10 @@ export async function GET(
         date: dbPost.createdAt.toISOString(),
         coverImage: "/img/frontendbg.png", // Default image
         slug: dbPost.slug,
-        category: dbPost.tags || 'Uncategorized',
+        category: dbPost.category ? dbPost.category.name : (dbPost.tags || 'Uncategorized'),
         content: dbPost.content
       };
-      
+
       return NextResponse.json(post);
     }
 
@@ -48,4 +49,4 @@ export async function GET(
       { status: 500 }
     );
   }
-} 
+}

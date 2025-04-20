@@ -432,12 +432,21 @@ export default function CreateBlogPage() {
     setLoading(true)
 
     try {
+      // Create a modified version of formData with categoryId instead of category
+      const postData = {
+        ...formData,
+        categoryId: formData.category, // Map category to categoryId for the API
+        shortDescription: formData.shortDescription // Map shortDescription to excerpt
+      };
+
+      console.log('Sending post data:', postData);
+
       const response = await fetch('/api/posts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(postData),
       })
 
       if (response.ok) {
@@ -465,7 +474,7 @@ export default function CreateBlogPage() {
 
   // Generate slug from title
   useEffect(() => {
-    if (formData.title && !formData.slug) {
+    if (formData.title) {
       const slug = formData.title
         .toLowerCase()
         .replace(/[^\w\s]/gi, '')
@@ -476,7 +485,7 @@ export default function CreateBlogPage() {
         slug
       }))
     }
-  }, [formData.title, formData.slug])
+  }, [formData.title])
 
   return (
     <div className="max-w-4xl mx-auto p-4">
@@ -507,15 +516,15 @@ export default function CreateBlogPage() {
 
           <div>
             <label htmlFor="slug" className="block mb-1 font-medium">
-              Slug
+              Slug (auto-generated from title)
             </label>
             <input
               type="text"
               id="slug"
               name="slug"
               value={formData.slug}
-              onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded"
+              readOnly
+              className="w-full p-2 border border-gray-300 rounded bg-gray-50"
             />
           </div>
 

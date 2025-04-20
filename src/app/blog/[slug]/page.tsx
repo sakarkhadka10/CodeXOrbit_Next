@@ -25,9 +25,10 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   try {
     // Fetch from database
     const post = await prisma.blog.findUnique({
-      where: { slug: params.slug }
+      where: { slug: params.slug },
+      include: { category: true } // Include the related category
     });
-    
+
     if (post) {
       return {
         title: `${post.title} | CodeX Orbit Blog`,
@@ -41,7 +42,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
         },
       };
     }
-    
+
     // Fallback to local data if needed
     const localPost = posts.find((post) => post.slug === params.slug);
     if (localPost) {
@@ -57,7 +58,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
         },
       };
     }
-    
+
     return {
       title: "Post Not Found | CodeX Orbit Blog",
       description: "The requested blog post could not be found.",
@@ -75,9 +76,10 @@ export default async function BlogPost({ params }: { params: { slug: string } })
   try {
     // Try to fetch from database first
     const dbPost = await prisma.blog.findUnique({
-      where: { slug: params.slug }
+      where: { slug: params.slug },
+      include: { category: true } // Include the related category
     });
-    
+
     if (dbPost) {
       // Transform database post to match expected format
       const post = {
@@ -88,16 +90,16 @@ export default async function BlogPost({ params }: { params: { slug: string } })
         date: dbPost.createdAt.toISOString(),
         coverImage: "/img/frontendbg.png", // Default image
         slug: dbPost.slug,
-        category: dbPost.tags || 'Uncategorized',
+        category: dbPost.category ? dbPost.category.name : (dbPost.tags || 'Uncategorized'),
         content: dbPost.content
       };
-      
+
       return renderPost(post);
     }
-    
+
     // If not found in database, try to fetch from API or local data
     let post: Post | undefined;
-    
+
     // Try to fetch from API first
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
     if (apiUrl) {
@@ -110,16 +112,16 @@ export default async function BlogPost({ params }: { params: { slug: string } })
         console.error("Error fetching post from API:", error);
       }
     }
-    
+
     // Fallback to local data if API fetch failed
     if (!post) {
       post = posts.find((p) => p.slug === params.slug);
     }
-    
+
     if (!post) {
       notFound();
     }
-    
+
     // Render the post
     return renderPost(post);
   } catch (error) {
@@ -168,7 +170,7 @@ function renderPost(post: Post) {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
               </div>
-              
+
               {/* Title Card - Overlapping the image */}
               <div className="px-4 sm:px-8 -mt-24 relative z-10">
                 <div className="bg-white rounded-xl shadow-xl p-6 sm:p-8">
@@ -183,12 +185,12 @@ function renderPost(post: Post) {
                       year: 'numeric'
                     })}</span>
                   </div>
-                  
+
                   {/* Title */}
                   <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-6 leading-tight">
                     {post.title}
                   </h1>
-                  
+
                   {/* Author and Actions */}
                   <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-gray-100">
                     <div className="flex items-center">
@@ -199,7 +201,7 @@ function renderPost(post: Post) {
                         <span className="block font-medium text-gray-900">{post.author}</span>
                       </div>
                     </div>
-                    
+
                     <div className="flex space-x-2">
                       <button className="p-2 rounded-full bg-gray-50 hover:bg-amber-50 text-gray-500 hover:text-amber-600 transition-all duration-300">
                         <FaBookmark />
@@ -214,26 +216,26 @@ function renderPost(post: Post) {
                   </div>
                 </div>
               </div>
-              
+
               {/* Article Content */}
               <div className="p-6 sm:p-8 md:p-10">
                 <CodeBlock content={post.content} />
               </div>
-              
+
               {/* Article Footer */}
               <div className="px-6 sm:px-8 pb-8">
                 <div className="bg-gray-50 rounded-xl p-6 flex flex-col sm:flex-row items-center justify-between">
                   <div className="flex items-center mb-4 sm:mb-0">
                     <FaTag className="text-amber-500 mr-2" />
-                    <Link 
+                    <Link
                       href={`/blog?category=${post.category}`}
                       className="text-gray-600 hover:text-amber-600 transition-colors"
                     >
                       {post.category}
                     </Link>
                   </div>
-                  <Link 
-                    href="/blog" 
+                  <Link
+                    href="/blog"
                     className="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg hover:from-amber-600 hover:to-amber-700 transition-all duration-300 shadow-md shadow-amber-500/20 flex items-center"
                   >
                     More Articles
@@ -241,7 +243,7 @@ function renderPost(post: Post) {
                 </div>
               </div>
             </article>
-            
+
             {/* Ad Space Below Article - Optimized for AdSense */}
             <div className="mt-6 w-full h-[250px] bg-gray-100 rounded-xl flex items-center justify-center text-gray-400">
               <div className="text-center">
@@ -250,7 +252,7 @@ function renderPost(post: Post) {
               </div>
             </div>
           </div>
-          
+
           {/* Sidebar - 3 columns on desktop */}
           <div className="lg:col-span-3 space-y-6">
             {/* Ad Space Top - Optimized for AdSense */}
@@ -260,10 +262,10 @@ function renderPost(post: Post) {
                 <p className="text-xs">AdSense (300×250)</p>
               </div>
             </div>
-            
+
             {/* Sidebar Components */}
             <SideBar />
-            
+
             {/* Ad Space Bottom - Optimized for AdSense */}
             <div className="w-full h-[600px] bg-gray-100 rounded-xl flex items-center justify-center text-gray-400">
               <div className="text-center">

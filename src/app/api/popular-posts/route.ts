@@ -8,6 +8,7 @@ export async function GET() {
     // Fetch popular posts from database (most recent for now)
     const dbPosts = await prisma.blog.findMany({
       where: { published: true },
+      include: { category: true }, // Include the related category
       orderBy: { createdAt: 'desc' },
       take: 12
     });
@@ -24,7 +25,7 @@ export async function GET() {
         day: 'numeric',
         year: 'numeric'
       }),
-      category: post.tags || 'Uncategorized',
+      category: post.category ? post.category.name : (post.tags || 'Uncategorized'),
       slug: post.slug,
     }));
 

@@ -24,9 +24,14 @@ export async function GET(request: NextRequest) {
               { tags: { contains: searchTerm } }
             ]
           },
-          category ? { tags: { contains: category } } : {}
+          category && category !== 'All' ?
+            { category: { name: category } } :
+            {}
         ],
         published: true
+      },
+      include: {
+        category: true // Include the related category
       },
       orderBy: { createdAt: 'desc' },
       skip: (page - 1) * limit,
@@ -42,7 +47,7 @@ export async function GET(request: NextRequest) {
       date: post.createdAt.toISOString(),
       coverImage: "/img/frontendbg.png", // Default image
       slug: post.slug,
-      category: post.tags || 'Uncategorized',
+      category: post.category ? post.category.name : (post.tags || 'Uncategorized'),
       content: post.content
     }));
 
@@ -58,30 +63,35 @@ export async function GET(request: NextRequest) {
               { tags: { contains: searchTerm } }
             ]
           },
-          category ? { tags: { contains: category } } : {}
+          category && category !== 'All' ?
+            { category: { name: category } } :
+            {}
         ],
         published: true
       }
     });
 
     // Get categories from database
-    const allPosts = await prisma.blog.findMany({
-      where: { published: true },
-      select: { tags: true }
-    });
-    
-    const categoryMap: Record<string, number> = {};
-    allPosts.forEach(post => {
-      if (post.tags) {
-        const category = post.tags;
-        categoryMap[category] = (categoryMap[category] || 0) + 1;
-      }
-    });
+    const dbCategories = await prisma.category.findMany();
 
-    const categories = Object.entries(categoryMap).map(([name, count]) => ({
-      name,
-      count,
-    }));
+    // Count posts per category
+    const categoryCounts = await Promise.all(
+      dbCategories.map(async (category) => {
+        const count = await prisma.blog.count({
+          where: {
+            categoryId: category.id,
+            published: true
+          }
+        });
+        return {
+          name: category.name,
+          count
+        };
+      })
+    );
+
+    // Sort categories by name
+    const categories = categoryCounts.sort((a, b) => a.name.localeCompare(b.name));
 
     const totalPages = Math.ceil(totalCount / limit);
 
@@ -107,7 +117,7 @@ export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
     console.log('Received post data:', data);
-    
+
     // Ensure required fields are present
     if (!data.title || !data.content || !data.slug) {
       return NextResponse.json(
@@ -115,42 +125,48 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    
+
     // Prepare data object without categoryId first
     const createData = {
       title: data.title,
       content: data.content,
       slug: data.slug,
       author: data.author || 'Anonymous',
-      excerpt: data.excerpt || '',
+      excerpt: data.shortDescription || data.excerpt || '',
       tags: data.tags || '',
       published: Boolean(data.published)
     };
-    
+
+    console.log('Processing data with:', {
+      shortDescription: data.shortDescription,
+      excerpt: data.excerpt,
+      categoryId: data.categoryId
+    });
+
     // Only add categoryId if it exists and is not empty
     if (data.categoryId && data.categoryId.trim() !== '') {
       // Check if the category exists
       const category = await prisma.category.findUnique({
         where: { id: data.categoryId }
       });
-      
+
       if (category) {
         createData.categoryId = data.categoryId;
       } else {
         console.log(`Category with ID ${data.categoryId} not found, creating post without category`);
       }
     }
-    
+
     // Create the blog post
     const blog = await prisma.blog.create({
       data: createData
     });
-    
+
     console.log('Created blog post:', blog);
     return NextResponse.json(blog, { status: 201 });
   } catch (error) {
     console.error('Error creating blog post:', error);
-    
+
     // Check for specific Prisma errors
     if (error.code === 'P2002') {
       return NextResponse.json(
@@ -158,7 +174,7 @@ export async function POST(request: NextRequest) {
         { status: 409 }
       );
     }
-    
+
     return NextResponse.json(
       { error: 'Failed to create blog post', details: error.message },
       { status: 500 }
