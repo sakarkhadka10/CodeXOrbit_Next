@@ -91,11 +91,84 @@ export default function EditBlogPage({ params }: { params: { id: string } }) {
     }
   }, [])
 
+  // Add custom styles for code blocks in the admin editor
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.innerHTML = `
+      /* Basic code block styling */
+      .note-editable pre {
+        background-color: #1e1e1e;
+        color: #e6e6e6;
+        border-radius: 6px;
+        padding: 40px 12px 12px 12px; /* Extra padding on top for the header */
+        margin: 15px 0;
+        position: relative;
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: 14px;
+        line-height: 1.5;
+        overflow-x: auto;
+      }
+
+      /* Code content */
+      .note-editable pre code {
+        display: block;
+        color: #e6e6e6;
+      }
+
+      /* Header bar with Mac-style UI */
+      .note-editable pre:before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 28px;
+        background-color: #2a2a2a;
+        border-bottom: 1px solid #444;
+        border-top-left-radius: 6px;
+        border-top-right-radius: 6px;
+      }
+
+      /* Red circle */
+      .note-editable pre:after {
+        content: '';
+        position: absolute;
+        top: 9px;
+        left: 10px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background-color: #ff5f56;
+        box-shadow: 22px 0 0 #ffbd2e, 44px 0 0 #27c93f; /* Yellow and green circles */
+        z-index: 1;
+      }
+
+      /* Language indicator */
+      .note-editable pre code:before {
+        content: 'CODE';
+        position: absolute;
+        top: 0;
+        right: 0;
+        padding: 6px 12px;
+        font-size: 10px;
+        color: #999;
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        text-transform: uppercase;
+        z-index: 2;
+      }
+    `;
+    document.head.appendChild(style);
+
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
   // Initialize Summernote editor
   useEffect(() => {
     if (typeof window !== 'undefined' && editorLoaded && editorRef.current && !loading) {
       const $ = window.jQuery
-      
+
       if ($ && $.summernote) {
         $(editorRef.current).summernote({
           height: 500,
@@ -123,20 +196,8 @@ export default function EditBlogPage({ params }: { params: { id: string } }) {
                 contents: '<i class="fa fa-code"></i>',
                 tooltip: 'Insert Code Block',
                 click: function() {
-                  // Create a better styled code block with language selection
-                  const codeBlock = `
-                    <div class="code-block-container">
-                      <div class="flex justify-between items-center bg-[#1e1e1e] px-4 py-2 rounded-t-lg border-b border-gray-700">
-                        <div class="flex gap-2 items-center">
-                          <div class="w-3 h-3 rounded-full bg-[#ff5f56]"></div>
-                          <div class="w-3 h-3 rounded-full bg-[#ffbd2e]"></div>
-                          <div class="w-3 h-3 rounded-full bg-[#27c93f]"></div>
-                        </div>
-                        <div class="text-xs text-gray-400 font-mono uppercase">javascript</div>
-                      </div>
-                      <pre><code>// Your code here</code></pre>
-                    </div>
-                  `;
+                  // Create a code block with visual styling in the editor
+                  const codeBlock = `<pre><code>// Your code here</code></pre>`;
                   context.invoke('editor.pasteHTML', codeBlock);
                 }
               });
@@ -155,14 +216,14 @@ export default function EditBlogPage({ params }: { params: { id: string } }) {
             ['view', ['fullscreen', 'codeview', 'help']]
           ]
         });
-        
+
         // Apply custom styling to match site theme
         $('.note-toolbar').addClass('bg-gray-50 border-b border-amber-200');
         $('.note-btn').addClass('hover:bg-amber-50 hover:text-amber-600');
         $('.note-editable').addClass('font-geist-sans text-gray-800');
       }
     }
-    
+
     return () => {
       if (typeof window !== 'undefined' && window.jQuery && editorRef.current) {
         try {
@@ -177,7 +238,7 @@ export default function EditBlogPage({ params }: { params: { id: string } }) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target
     const checked = (e.target as HTMLInputElement).checked
-    
+
     setFormData(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value
@@ -212,7 +273,7 @@ export default function EditBlogPage({ params }: { params: { id: string } }) {
       .toLowerCase()
       .replace(/[^\w\s]/gi, '')
       .replace(/\s+/g, '-')
-    
+
     setFormData(prev => ({
       ...prev,
       slug
@@ -250,7 +311,7 @@ export default function EditBlogPage({ params }: { params: { id: string } }) {
                 required
               />
             </div>
-            
+
             <div className="flex gap-2">
               <div className="flex-grow">
                 <label htmlFor="slug" className="block mb-1 font-medium">
@@ -323,7 +384,7 @@ export default function EditBlogPage({ params }: { params: { id: string } }) {
                 className="w-full p-2 border border-gray-300 rounded"
               />
             </div>
-            
+
             <div className="mb-6">
               <label className="block mb-1 font-medium">
                 Content
@@ -359,7 +420,7 @@ export default function EditBlogPage({ params }: { params: { id: string } }) {
               </label>
             </div>
           </div>
-          
+
           <div className="flex justify-end">
             <button
               type="submit"
@@ -381,7 +442,7 @@ export default function EditBlogPage({ params }: { params: { id: string } }) {
           </div>
         </form>
       )}
-      
+
       <Script
         src="https://code.jquery.com/jquery-3.6.0.min.js"
         strategy="beforeInteractive"

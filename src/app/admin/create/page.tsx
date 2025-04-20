@@ -87,41 +87,70 @@ export default function CreateBlogPage() {
     }
   }, [])
 
-  // Add custom styles for code blocks in the admin create page
+  // Add custom styles for code blocks in the admin editor
   useEffect(() => {
     const style = document.createElement('style');
     style.innerHTML = `
-      .admin-code-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+      /* Basic code block styling */
+      .note-editable pre {
         background-color: #1e1e1e;
-        padding: 0.5rem 1rem;
-        border-bottom: 1px solid #333;
-        border-top-left-radius: 0.5rem;
-        border-top-right-radius: 0.5rem;
+        color: #e6e6e6;
+        border-radius: 6px;
+        padding: 40px 12px 12px 12px; /* Extra padding on top for the header */
+        margin: 15px 0;
+        position: relative;
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: 14px;
+        line-height: 1.5;
+        overflow-x: auto;
       }
 
-      .admin-code-dots {
-        display: flex;
-        gap: 0.5rem;
+      /* Code content */
+      .note-editable pre code {
+        display: block;
+        color: #e6e6e6;
       }
 
-      .admin-code-dot {
-        width: 0.75rem;
-        height: 0.75rem;
-        border-radius: 9999px;
+      /* Header bar with Mac-style UI */
+      .note-editable pre:before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 28px;
+        background-color: #2a2a2a;
+        border-bottom: 1px solid #444;
+        border-top-left-radius: 6px;
+        border-top-right-radius: 6px;
       }
 
-      .admin-code-dot-red { background-color: #ff5f56; }
-      .admin-code-dot-yellow { background-color: #ffbd2e; }
-      .admin-code-dot-green { background-color: #27c93f; }
+      /* Red circle */
+      .note-editable pre:after {
+        content: '';
+        position: absolute;
+        top: 9px;
+        left: 10px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background-color: #ff5f56;
+        box-shadow: 22px 0 0 #ffbd2e, 44px 0 0 #27c93f; /* Yellow and green circles */
+        z-index: 1;
+      }
 
-      .admin-code-language {
-        font-size: 0.75rem;
-        color: #9ca3af;
-        font-family: monospace;
+      /* Language indicator */
+      .note-editable pre code:before {
+        content: 'CODE';
+        position: absolute;
+        top: 0;
+        right: 0;
+        padding: 6px 12px;
+        font-size: 10px;
+        color: #999;
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
         text-transform: uppercase;
+        z-index: 2;
       }
     `;
     document.head.appendChild(style);
@@ -216,22 +245,8 @@ export default function CreateBlogPage() {
                 tooltip: 'Insert Code Block',
                 className: 'note-btn-codeblock',
                 click: function() {
-                  // Create a code block with macOS-style header
-                  const codeBlock = `
-                    <div class="code-block-container">
-                      <div class="admin-code-header">
-                        <div class="admin-code-dots">
-                          <div class="admin-code-dot admin-code-dot-red"></div>
-                          <div class="admin-code-dot admin-code-dot-yellow"></div>
-                          <div class="admin-code-dot admin-code-dot-green"></div>
-                        </div>
-                        <div class="flex items-center">
-                          <div class="admin-code-language">javascript</div>
-                        </div>
-                      </div>
-                      <pre><code>// Your code here</code></pre>
-                    </div>
-                  `;
+                  // Create a code block with visual styling in the editor
+                  const codeBlock = `<pre><code>// Your code here</code></pre>`;
                   context.invoke('editor.pasteHTML', codeBlock);
 
                   // Focus inside the code block

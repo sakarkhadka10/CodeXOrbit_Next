@@ -51,8 +51,23 @@ export default function CodeBlock({ content }: CodeBlockProps) {
     // Process code blocks
     const codeMap = new Map<string, string>();
 
-    // This regex finds all <pre><code> blocks
-    const processedHtml = content.replace(/<pre><code>([\s\S]*?)<\/code><\/pre>/g, (_match, codeContent) => {
+    // Clean up any existing content with problematic elements
+    let cleanedContent = content;
+
+    // Remove any Exit buttons
+    cleanedContent = cleanedContent.replace(/<button[^>]*>\s*Exit\s*<\/button>/g, '');
+
+    // Fix any code blocks that might have the language displayed outside
+    cleanedContent = cleanedContent.replace(/(<\/div>\s*)<([^>]+)>([a-zA-Z0-9]+)<\/[^>]+>(\s*<pre)/g, '$1$4');
+
+    // Fix the specific issue with javascript text appearing outside the code block
+    cleanedContent = cleanedContent.replace(/<\/button>\s*<\/div>\s*<\/div>\s*javascript\s*<div[^>]*>Copy<\/div>/g, '</button></div></div>');
+
+    // Remove any standalone language indicators
+    cleanedContent = cleanedContent.replace(/>\s*javascript\s*</g, '><');
+
+    // Process all code blocks to ensure they have proper headers
+    const processedHtml = cleanedContent.replace(/<pre><code>([\s\S]*?)<\/code><\/pre>/g, (_match, codeContent) => {
       const language = detectLanguage(codeContent);
 
       // Format the code to preserve indentation
@@ -62,45 +77,41 @@ export default function CodeBlock({ content }: CodeBlockProps) {
         .map((line: string) => line.trimEnd())
         .join('\n');
 
+      // Generate a unique ID for this code block
+      const blockId = `code-block-${Math.random().toString(36).substring(2, 11)}`;
+
+      // Store the original formatted code for copy functionality
+      codeMap.set(blockId, formattedCode);
+
+      // Highlight the code using Prism
       const highlightedCode = Prism.highlight(
         formattedCode,
         Prism.languages[language] || Prism.languages.javascript,
         language
       );
 
-      // Generate a unique ID for this code block
-      const blockId = `code-block-${Math.random().toString(36).substring(2, 11)}`;
-
-      // Store the original formatted code
-      codeMap.set(blockId, formattedCode);
-
-      // Add terminal-like header with dots and language indicator
-      // macOS style for all pages, but without Exit button for non-admin pages
-      const terminalHeader = `
-        <div class="flex justify-between items-center bg-[#1e1e1e] px-4 py-2 rounded-t-lg border-b border-gray-700">
-          <div class="flex gap-2 items-center">
-            <div class="w-3 h-3 rounded-full bg-[#ff5f56]"></div>
-            <div class="w-3 h-3 rounded-full bg-[#ffbd2e]"></div>
-            <div class="w-3 h-3 rounded-full bg-[#27c93f]"></div>
-          </div>
-          <div class="flex items-center gap-3">
-            <span class="text-xs text-gray-400 font-mono uppercase">${language}</span>
-            <button
-              class="copy-button flex items-center gap-1.5 px-2 py-1 text-xs text-gray-400 hover:text-white bg-gray-800 hover:bg-gray-700 rounded transition-colors"
-              data-code-id="${blockId}"
-            >
-              <span class="copy-icon"><svg class="w-3.5 h-3.5" viewBox="0 0 384 512"><path fill="currentColor" d="M280 64h40c35.3 0 64 28.7 64 64V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V128C0 92.7 28.7 64 64 64h40 9.6C121 27.5 153.3 0 192 0s71 27.5 78.4 64H280zM64 112c-8.8 0-16 7.2-16 16V448c0 8.8 7.2 16 16 16H320c8.8 0 16-7.2 16-16V128c0-8.8-7.2-16-16-16H304v24c0 13.3-10.7 24-24 24H192 104c-13.3 0-24-10.7-24-24V112H64zm128-8a24 24 0 1 0 0-48 24 24 0 1 0 0 48z"/></svg></span>
-              <span class="copy-text">Copy</span>
-            </button>
-          </div>
-        </div>
-      `;
-
+      // Create the terminal-like header with dots and language indicator
       return `
-        <div class="code-block-container" id="${blockId}">
-          ${terminalHeader}
-          <pre class="shadow-lg">
-            <code class="language-${language}">${highlightedCode}</code>
+        <div class="relative my-6 rounded-lg overflow-hidden shadow-lg" id="${blockId}">
+          <div class="flex justify-between items-center bg-[#1e1e1e] px-4 py-2 rounded-t-lg border-b border-gray-700">
+            <div class="flex gap-2 items-center">
+              <div class="w-3 h-3 rounded-full bg-[#ff5f56]"></div>
+              <div class="w-3 h-3 rounded-full bg-[#ffbd2e]"></div>
+              <div class="w-3 h-3 rounded-full bg-[#27c93f]"></div>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-xs text-gray-400 font-mono uppercase">${language}</span>
+              <button
+                class="copy-button flex items-center gap-1.5 px-2 py-1 text-xs text-gray-400 hover:text-white bg-gray-800 hover:bg-gray-700 rounded transition-colors"
+                data-code-id="${blockId}"
+              >
+                <span class="copy-icon"><svg class="w-3.5 h-3.5" viewBox="0 0 384 512"><path fill="currentColor" d="M280 64h40c35.3 0 64 28.7 64 64V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V128C0 92.7 28.7 64 64 64h40 9.6C121 27.5 153.3 0 192 0s71 27.5 78.4 64H280zM64 112c-8.8 0-16 7.2-16 16V448c0 8.8 7.2 16 16 16H320c8.8 0 16-7.2 16-16V128c0-8.8-7.2-16-16-16H304v24c0 13.3-10.7 24-24 24H192 104c-13.3 0-24-10.7-24-24V112H64zm128-8a24 24 0 1 0 0-48 24 24 0 1 0 0 48z"/></svg></span>
+                <span class="copy-text">Copy</span>
+              </button>
+            </div>
+          </div>
+          <pre class="m-0 rounded-b-lg bg-[#1e1e1e] text-white font-mono text-sm leading-6">
+            <code class="block p-4 overflow-x-auto language-${language}">${highlightedCode}</code>
           </pre>
         </div>
       `;
@@ -129,6 +140,7 @@ export default function CodeBlock({ content }: CodeBlockProps) {
             document.body.appendChild(textarea);
             textarea.select();
             // Using execCommand despite deprecation as it has better browser support
+            // @ts-expect-error - Ignoring deprecation warning for better browser compatibility
             document.execCommand('copy');
             document.body.removeChild(textarea);
 
