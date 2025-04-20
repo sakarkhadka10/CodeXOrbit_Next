@@ -21,7 +21,7 @@ export default function AddCategoryPage() {
       .toLowerCase()
       .replace(/[^\w\s]/gi, '')
       .replace(/\s+/g, '-')
-    
+
     setFormData(prev => ({ ...prev, slug }))
   }
 
@@ -29,7 +29,12 @@ export default function AddCategoryPage() {
     e.preventDefault()
     setIsSubmitting(true)
     setError('')
-    
+
+    // Make sure slug is not empty
+    if (!formData.slug.trim()) {
+      generateSlug()
+    }
+
     try {
       const response = await fetch('/api/categories', {
         method: 'POST',
@@ -38,7 +43,7 @@ export default function AddCategoryPage() {
         },
         body: JSON.stringify(formData),
       })
-      
+
       if (response.ok) {
         router.push('/admin/categories')
       } else {
@@ -57,23 +62,23 @@ export default function AddCategoryPage() {
     <div className="min-h-screen bg-gray-50 py-10">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <Link 
-            href="/admin/categories" 
+          <Link
+            href="/admin/categories"
             className="flex items-center text-blue-600 hover:text-blue-800"
           >
             <FaArrowLeft className="mr-2" /> Back to Categories
           </Link>
         </div>
-        
+
         <div className="bg-white shadow-md rounded-lg p-6">
           <h1 className="text-2xl font-bold text-gray-900 mb-6">Add New Category</h1>
-          
+
           {error && (
             <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">
               {error}
             </div>
           )}
-          
+
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">Category Name</label>
@@ -87,7 +92,7 @@ export default function AddCategoryPage() {
                 required
               />
             </div>
-            
+
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Slug
@@ -108,7 +113,7 @@ export default function AddCategoryPage() {
                 required
               />
             </div>
-            
+
             <div className="flex justify-end">
               <button
                 type="submit"

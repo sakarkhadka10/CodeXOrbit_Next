@@ -10,7 +10,7 @@ export async function GET() {
     const categories = await prisma.category.findMany({
       orderBy: { name: 'asc' }
     });
-    
+
     return NextResponse.json(categories);
   } catch (error) {
     console.error("Error fetching categories:", error);
@@ -25,20 +25,32 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
-    
+
     // Generate slug from name if not provided
     const slug = data.slug || data.name
       .toLowerCase()
       .replace(/[^\w\s]/gi, '')
       .replace(/\s+/g, '-');
-    
+
+    // Check if category with this slug already exists
+    const existingCategory = await prisma.category.findUnique({
+      where: { slug: slug }
+    });
+
+    if (existingCategory) {
+      return NextResponse.json(
+        { error: "A category with this slug already exists" },
+        { status: 400 }
+      );
+    }
+
     const category = await prisma.category.create({
       data: {
-        name: data.name,
-        slug: slug
+        slug: slug,
+        name: data.name
       }
     });
-    
+
     return NextResponse.json(category, { status: 201 });
   } catch (error) {
     console.error("Error creating category:", error);
@@ -47,4 +59,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-} 
+}

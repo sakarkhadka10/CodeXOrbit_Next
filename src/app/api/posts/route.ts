@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
       dbCategories.map(async (category) => {
         const count = await prisma.blog.count({
           where: {
-            categoryId: category.id,
+            categoryId: category.slug,
             published: true
           }
         });
@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
     if (data.categoryId && data.categoryId.trim() !== '') {
       // Check if the category exists
       const category = await prisma.category.findUnique({
-        where: { id: data.categoryId }
+        where: { slug: data.categoryId }
       });
 
       if (category) {

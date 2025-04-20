@@ -12,9 +12,8 @@ datasource db {
 }
 
 model Category {
-  id        String   @id @default(cuid())
+  slug      String   @id
   name      String
-  slug      String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   blogs     Blog[]
@@ -32,7 +31,7 @@ model Blog {
   excerpt   String?  @db.Text
   tags      String?
   coverImage String?  @db.VarChar(1000)
-  category  Category? @relation(fields: [categoryId], references: [id])
+  category  Category? @relation(fields: [categoryId], references: [slug])
   categoryId String?
 }
 

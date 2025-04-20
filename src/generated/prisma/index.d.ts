@@ -962,25 +962,22 @@ export namespace Prisma {
   }
 
   export type CategoryMinAggregateOutputType = {
-    id: string | null
-    name: string | null
     slug: string | null
+    name: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
 
   export type CategoryMaxAggregateOutputType = {
-    id: string | null
-    name: string | null
     slug: string | null
+    name: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
 
   export type CategoryCountAggregateOutputType = {
-    id: number
-    name: number
     slug: number
+    name: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -988,25 +985,22 @@ export namespace Prisma {
 
 
   export type CategoryMinAggregateInputType = {
-    id?: true
-    name?: true
     slug?: true
+    name?: true
     createdAt?: true
     updatedAt?: true
   }
 
   export type CategoryMaxAggregateInputType = {
-    id?: true
-    name?: true
     slug?: true
+    name?: true
     createdAt?: true
     updatedAt?: true
   }
 
   export type CategoryCountAggregateInputType = {
-    id?: true
-    name?: true
     slug?: true
+    name?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -1085,9 +1079,8 @@ export namespace Prisma {
   }
 
   export type CategoryGroupByOutputType = {
-    id: string
-    name: string
     slug: string
+    name: string
     createdAt: Date
     updatedAt: Date
     _count: CategoryCountAggregateOutputType | null
@@ -1110,9 +1103,8 @@ export namespace Prisma {
 
 
   export type CategorySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    id?: boolean
-    name?: boolean
     slug?: boolean
+    name?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     blogs?: boolean | Category$blogsArgs<ExtArgs>
@@ -1121,9 +1113,8 @@ export namespace Prisma {
 
 
   export type CategorySelectScalar = {
-    id?: boolean
-    name?: boolean
     slug?: boolean
+    name?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
@@ -1139,9 +1130,8 @@ export namespace Prisma {
       blogs: Prisma.$BlogPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
-      id: string
-      name: string
       slug: string
+      name: string
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["category"]>
@@ -1227,8 +1217,8 @@ export namespace Prisma {
      * // Get first 10 Categories
      * const categories = await prisma.category.findMany({ take: 10 })
      * 
-     * // Only select the `id`
-     * const categoryWithIdOnly = await prisma.category.findMany({ select: { id: true } })
+     * // Only select the `slug`
+     * const categoryWithSlugOnly = await prisma.category.findMany({ select: { slug: true } })
      * 
      */
     findMany<T extends CategoryFindManyArgs>(args?: SelectSubset<T, CategoryFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CategoryPayload<ExtArgs>, T, "findMany">>
@@ -1514,9 +1504,8 @@ export namespace Prisma {
    * Fields of the Category model
    */ 
   interface CategoryFieldRefs {
-    readonly id: FieldRef<"Category", 'String'>
-    readonly name: FieldRef<"Category", 'String'>
     readonly slug: FieldRef<"Category", 'String'>
+    readonly name: FieldRef<"Category", 'String'>
     readonly createdAt: FieldRef<"Category", 'DateTime'>
     readonly updatedAt: FieldRef<"Category", 'DateTime'>
   }
@@ -2872,9 +2861,8 @@ export namespace Prisma {
 
 
   export const CategoryScalarFieldEnum: {
-    id: 'id',
-    name: 'name',
     slug: 'slug',
+    name: 'name',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -2963,25 +2951,22 @@ export namespace Prisma {
     AND?: CategoryWhereInput | CategoryWhereInput[]
     OR?: CategoryWhereInput[]
     NOT?: CategoryWhereInput | CategoryWhereInput[]
-    id?: StringFilter<"Category"> | string
-    name?: StringFilter<"Category"> | string
     slug?: StringFilter<"Category"> | string
+    name?: StringFilter<"Category"> | string
     createdAt?: DateTimeFilter<"Category"> | Date | string
     updatedAt?: DateTimeFilter<"Category"> | Date | string
     blogs?: BlogListRelationFilter
   }
 
   export type CategoryOrderByWithRelationInput = {
-    id?: SortOrder
-    name?: SortOrder
     slug?: SortOrder
+    name?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     blogs?: BlogOrderByRelationAggregateInput
   }
 
   export type CategoryWhereUniqueInput = Prisma.AtLeast<{
-    id?: string
     slug?: string
     AND?: CategoryWhereInput | CategoryWhereInput[]
     OR?: CategoryWhereInput[]
@@ -2990,12 +2975,11 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"Category"> | Date | string
     updatedAt?: DateTimeFilter<"Category"> | Date | string
     blogs?: BlogListRelationFilter
-  }, "id" | "slug">
+  }, "slug">
 
   export type CategoryOrderByWithAggregationInput = {
-    id?: SortOrder
-    name?: SortOrder
     slug?: SortOrder
+    name?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: CategoryCountOrderByAggregateInput
@@ -3007,9 +2991,8 @@ export namespace Prisma {
     AND?: CategoryScalarWhereWithAggregatesInput | CategoryScalarWhereWithAggregatesInput[]
     OR?: CategoryScalarWhereWithAggregatesInput[]
     NOT?: CategoryScalarWhereWithAggregatesInput | CategoryScalarWhereWithAggregatesInput[]
-    id?: StringWithAggregatesFilter<"Category"> | string
-    name?: StringWithAggregatesFilter<"Category"> | string
     slug?: StringWithAggregatesFilter<"Category"> | string
+    name?: StringWithAggregatesFilter<"Category"> | string
     createdAt?: DateTimeWithAggregatesFilter<"Category"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Category"> | Date | string
   }
@@ -3107,61 +3090,54 @@ export namespace Prisma {
   }
 
   export type CategoryCreateInput = {
-    id?: string
-    name: string
     slug: string
+    name: string
     createdAt?: Date | string
     updatedAt?: Date | string
     blogs?: BlogCreateNestedManyWithoutCategoryInput
   }
 
   export type CategoryUncheckedCreateInput = {
-    id?: string
-    name: string
     slug: string
+    name: string
     createdAt?: Date | string
     updatedAt?: Date | string
     blogs?: BlogUncheckedCreateNestedManyWithoutCategoryInput
   }
 
   export type CategoryUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     blogs?: BlogUpdateManyWithoutCategoryNestedInput
   }
 
   export type CategoryUncheckedUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     blogs?: BlogUncheckedUpdateManyWithoutCategoryNestedInput
   }
 
   export type CategoryCreateManyInput = {
-    id?: string
-    name: string
     slug: string
+    name: string
     createdAt?: Date | string
     updatedAt?: Date | string
   }
 
   export type CategoryUpdateManyMutationInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type CategoryUncheckedUpdateManyInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -3303,25 +3279,22 @@ export namespace Prisma {
   }
 
   export type CategoryCountOrderByAggregateInput = {
-    id?: SortOrder
-    name?: SortOrder
     slug?: SortOrder
+    name?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
 
   export type CategoryMaxOrderByAggregateInput = {
-    id?: SortOrder
-    name?: SortOrder
     slug?: SortOrder
+    name?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
 
   export type CategoryMinOrderByAggregateInput = {
-    id?: SortOrder
-    name?: SortOrder
     slug?: SortOrder
+    name?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -3794,17 +3767,15 @@ export namespace Prisma {
   }
 
   export type CategoryCreateWithoutBlogsInput = {
-    id?: string
-    name: string
     slug: string
+    name: string
     createdAt?: Date | string
     updatedAt?: Date | string
   }
 
   export type CategoryUncheckedCreateWithoutBlogsInput = {
-    id?: string
-    name: string
     slug: string
+    name: string
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -3826,17 +3797,15 @@ export namespace Prisma {
   }
 
   export type CategoryUpdateWithoutBlogsInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type CategoryUncheckedUpdateWithoutBlogsInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

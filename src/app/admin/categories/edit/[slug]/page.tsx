@@ -5,9 +5,10 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { FaArrowLeft } from 'react-icons/fa'
 
-export default function EditCategoryPage({ params }: { params: { id: string } }) {
+export default function EditCategoryPage({ params }: { params: { slug: string } }) {
   const router = useRouter()
   const [formData, setFormData] = useState({ name: '', slug: '' })
+  const [originalSlug, setOriginalSlug] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -15,10 +16,11 @@ export default function EditCategoryPage({ params }: { params: { id: string } })
   useEffect(() => {
     const fetchCategory = async () => {
       try {
-        const response = await fetch(`/api/categories/${params.id}`)
+        const response = await fetch(`/api/categories/${params.slug}`)
         if (response.ok) {
           const data = await response.json()
           setFormData({ name: data.name, slug: data.slug })
+          setOriginalSlug(data.slug)
         } else {
           setError('Failed to fetch category')
         }
@@ -31,7 +33,7 @@ export default function EditCategoryPage({ params }: { params: { id: string } })
     }
 
     fetchCategory()
-  }, [params.id])
+  }, [params.slug])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -53,7 +55,7 @@ export default function EditCategoryPage({ params }: { params: { id: string } })
     setError('')
     
     try {
-      const response = await fetch(`/api/categories/${params.id}`, {
+      const response = await fetch(`/api/categories/${originalSlug}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
