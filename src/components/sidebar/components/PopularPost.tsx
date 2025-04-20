@@ -1,7 +1,8 @@
 "use client";
 import React, { useState, useEffect, memo } from "react";
-import Image from "next/image";
 import Link from "next/link";
+import PopularPostImage from "./PopularPostImage";
+import SmallPostImage from "./SmallPostImage";
 
 interface Post {
   id: string;
@@ -71,14 +72,11 @@ const PopularPost = memo(() => {
         {/* Featured Post */}
         {popularPosts[0] && (
           <Link href={`/blog/${popularPosts[0].slug}`} className="block">
-            <div
-              className="relative h-40 rounded-xl overflow-hidden bg-gray-900 shadow-md hover:shadow-lg transition-shadow bg-cover bg-center"
-              style={{ backgroundImage: `url(${popularPosts[0].coverImage})` }}
-            >
-              <span className="absolute top-3 left-3 px-3 py-1 text-xs font-medium text-white bg-indigo-600 rounded-full">
-                {popularPosts[0].category}
-              </span>
-            </div>
+            <PopularPostImage
+              coverImage={popularPosts[0].coverImage}
+              title={popularPosts[0].title}
+              category={popularPosts[0].category}
+            />
           </Link>
         )}
 
@@ -86,16 +84,10 @@ const PopularPost = memo(() => {
         {popularPosts.slice(1).map((post) => (
           <Link href={`/blog/${post.slug}`} key={post.id} className="block">
             <div className="flex gap-4 group">
-              <div className="w-20 h-16 rounded-md overflow-hidden relative flex-shrink-0 shadow-sm group-hover:shadow-md transition-shadow">
-                <Image
-                  src={post.coverImage}
-                  alt={post.title}
-                  fill
-                  sizes="80px" // Optimize for small thumbnail
-                  className="object-cover"
-                  priority={false} // Load lazily unless critical
-                />
-              </div>
+              <SmallPostImage
+                coverImage={post.coverImage}
+                title={post.title}
+              />
               <div>
                 <h3 className="text-sm font-medium text-gray-900 line-clamp-2 group-hover:text-indigo-600 transition-colors">
                   {post.title}

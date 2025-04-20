@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { FaCalendarAlt, FaUser, FaSearch } from "react-icons/fa";
+import BlogPostImage from "./BlogPostImage";
 import { useSearchParams, useRouter } from "next/navigation";
 
 interface Post {
@@ -228,15 +228,10 @@ export default function BlogPosts() {
                     className="group"
                   >
                     <div className="flex flex-col md:flex-row group bg-white rounded-xl shadow-md overflow-hidden transition-transform duration-300 group-hover:scale-[1.02]">
-                      <div className="relative h-64 md:w-2/5 overflow-hidden flex-shrink-0">
-                        <Image
-                          src={post.coverImage}
-                          alt={post.title}
-                          fill
-                          sizes="(max-width: 768px) 100vw, 40vw"
-                         className="object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                      </div>
+                      <BlogPostImage
+                        coverImage={post.coverImage}
+                        title={post.title}
+                      />
                       <div className="p-6">
                         <span className="inline-block px-3 py-1 bg-amber-500 text-white text-sm font-medium rounded-full mb-4">
                           {post.category}

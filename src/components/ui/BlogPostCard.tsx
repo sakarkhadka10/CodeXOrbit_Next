@@ -1,7 +1,7 @@
 import React from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { FaCalendarAlt, FaUser, FaArrowRight } from "react-icons/fa";
+import BlogPostCardImage from "./BlogPostCardImage";
 
 interface BlogPostCardProps {
   title: string;
@@ -31,14 +31,11 @@ const BlogPostCard = ({
           {/* Image container */}
           <Link href={`/blog/${slug}`} className="block w-full md:w-2/5 overflow-hidden flex-shrink-0">
             <div className="aspect-[16/9] w-full h-56 md:h-full relative">
-              <Image
-                src={coverImage}
-                alt={title}
-                fill
-                className="object-cover transition-transform duration-500 group-hover:scale-110"
+              <BlogPostCardImage
+                coverImage={coverImage}
+                title={title}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <span className="absolute left-4 top-4 px-3 py-1.5 text-sm bg-amber-500 text-white font-medium text-center rounded-full shadow-md">
+              <span className="absolute left-4 top-4 px-3 py-1.5 text-sm bg-amber-500 text-white font-medium text-center rounded-full shadow-md z-10">
                 {category}
               </span>
             </div>
