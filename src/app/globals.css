@@ -24,9 +24,38 @@ ul {
   @apply list-disc list-inside my-2;
 }
 
-/* Code block styling */
+/* Summernote Editor Styling */
+.note-editor.note-frame {
+  @apply border-gray-300 rounded-lg overflow-hidden shadow-sm;
+}
+
+.note-editor .note-toolbar {
+  @apply bg-gray-50 border-b border-amber-200 p-2;
+}
+
+.note-editor .note-btn {
+  @apply rounded-md transition-colors;
+}
+
+.note-editor .note-btn:hover {
+  @apply bg-amber-50 text-amber-600;
+}
+
+.note-editor .note-editable {
+  @apply p-4 text-gray-800 min-h-[300px];
+}
+
+.note-editor .note-status-output {
+  @apply text-sm text-gray-500;
+}
+
+.note-editor .note-statusbar {
+  @apply bg-gray-50 border-t border-gray-200;
+}
+
+/* Enhanced code block styling */
 .code-block-container {
-  @apply relative my-6;
+  @apply relative my-6 rounded-lg overflow-hidden shadow-lg;
 }
 
 .code-block-container pre {
