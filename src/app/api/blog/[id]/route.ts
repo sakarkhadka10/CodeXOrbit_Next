@@ -10,25 +10,25 @@ export async function GET(
 ) {
   try {
     const id = parseInt(params.id)
-    
+
     if (isNaN(id)) {
       return NextResponse.json(
         { error: 'Invalid ID format' },
         { status: 400 }
       )
     }
-    
+
     const blog = await prisma.blog.findUnique({
       where: { id }
     })
-    
+
     if (!blog) {
       return NextResponse.json(
         { error: 'Blog post not found' },
         { status: 404 }
       )
     }
-    
+
     return NextResponse.json(blog)
   } catch (error) {
     console.error('Error fetching blog:', error)
@@ -46,16 +46,16 @@ export async function PUT(
 ) {
   try {
     const id = parseInt(params.id)
-    
+
     if (isNaN(id)) {
       return NextResponse.json(
         { error: 'Invalid ID format' },
         { status: 400 }
       )
     }
-    
+
     const data = await request.json()
-    
+
     const blog = await prisma.blog.update({
       where: { id },
       data: {
@@ -63,12 +63,12 @@ export async function PUT(
         content: data.content,
         slug: data.slug,
         author: data.author,
-        excerpt: data.excerpt || null,
+        excerpt: data.shortDescription || data.excerpt || null,
         tags: data.tags || null,
         published: data.published || false
       }
     })
-    
+
     return NextResponse.json(blog)
   } catch (error) {
     console.error('Error updating blog:', error)
@@ -86,18 +86,18 @@ export async function DELETE(
 ) {
   try {
     const id = parseInt(params.id)
-    
+
     if (isNaN(id)) {
       return NextResponse.json(
         { error: 'Invalid ID format' },
         { status: 400 }
       )
     }
-    
+
     await prisma.blog.delete({
       where: { id }
     })
-    
+
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error deleting blog:', error)

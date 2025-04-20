@@ -228,7 +228,7 @@ export default function BlogPosts() {
                     className="group"
                   >
                     <div className="flex flex-col md:flex-row group bg-white rounded-xl shadow-md overflow-hidden transition-transform duration-300 group-hover:scale-[1.02]">
-                      <div className="relative h-64 md:w-2/5 overflow-hidden">
+                      <div className="relative h-64 md:w-2/5 overflow-hidden flex-shrink-0">
                         <Image
                           src={post.coverImage}
                           alt={post.title}

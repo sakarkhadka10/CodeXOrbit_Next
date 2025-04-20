@@ -29,7 +29,7 @@ const BlogPostCard = ({
       <article className="border border-[#e3e3ff] overflow-hidden rounded-xl">
         <div className="flex flex-col md:flex-row gap-4">
           {/* Image container */}
-          <Link href={`/blog/${slug}`} className="block w-full md:w-2/5 overflow-hidden">
+          <Link href={`/blog/${slug}`} className="block w-full md:w-2/5 overflow-hidden flex-shrink-0">
             <div className="aspect-[16/9] w-full h-56 md:h-full relative">
               <Image
                 src={coverImage}

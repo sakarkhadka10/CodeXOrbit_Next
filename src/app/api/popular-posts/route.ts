@@ -18,7 +18,7 @@ export async function GET() {
       id: post.id,
       title: post.title,
       coverImage: "/img/frontendbg.png", // Default image
-      shortDescription: post.excerpt || '',
+      shortDescription: (post.excerpt || '').length > 100 ? (post.excerpt || '').substring(0, 100) + '...' : (post.excerpt || ''),
       author: post.author,
       date: new Date(post.createdAt).toLocaleDateString('en-US', {
         month: 'short',

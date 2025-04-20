@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
     const transformedPosts = dbPosts.map(post => ({
       id: post.id.toString(),
       title: post.title,
-      shortDescription: post.excerpt || '',
+      shortDescription: (post.excerpt || '').length > 100 ? (post.excerpt || '').substring(0, 100) + '...' : (post.excerpt || ''),
       author: post.author,
       date: post.createdAt.toISOString(),
       coverImage: "/img/frontendbg.png", // Default image

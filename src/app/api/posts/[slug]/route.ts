@@ -20,7 +20,7 @@ export async function GET(
       const post = {
         id: dbPost.id.toString(),
         title: dbPost.title,
-        shortDescription: dbPost.excerpt || '',
+        shortDescription: (dbPost.excerpt || '').length > 100 ? (dbPost.excerpt || '').substring(0, 100) + '...' : (dbPost.excerpt || ''),
         author: dbPost.author,
         date: dbPost.createdAt.toISOString(),
         coverImage: "/img/frontendbg.png", // Default image

@@ -564,16 +564,27 @@ export default function CreateBlogPage() {
 
           <div>
             <label htmlFor="shortDescription" className="block mb-1 font-medium">
-              Short Description
+              Short Description <span className="text-xs text-gray-500">(Max 100 characters)</span>
             </label>
             <textarea
               id="shortDescription"
               name="shortDescription"
               value={formData.shortDescription}
-              onChange={handleChange}
+              onChange={(e) => {
+                // Limit to 100 characters
+                if (e.target.value.length <= 100) {
+                  handleChange(e);
+                }
+              }}
+              maxLength={100}
               rows={3}
               className="w-full p-2 border border-gray-300 rounded"
             />
+            <div className="flex justify-end mt-1">
+              <span className={`text-xs ${formData.shortDescription.length >= 90 ? 'text-amber-600' : 'text-gray-500'}`}>
+                {formData.shortDescription.length}/100
+              </span>
+            </div>
           </div>
 
           <div className="mb-6">
