@@ -5,18 +5,18 @@ import { FaCalendarAlt, FaUser, FaArrowRight } from "react-icons/fa";
 
 interface BlogPostCardProps {
   title: string;
-  description: string;
+  shortDescription: string;
   author: string;
   date: string;
   coverImage: string;
   slug: string;
   category: string;
-  tags: string;
+  tags?: string;
 }
 
 const BlogPostCard = ({
   title,
-  description,
+  shortDescription,
   author,
   date,
   coverImage,
@@ -52,7 +52,7 @@ const BlogPostCard = ({
               </h1>
             </Link>
 
-            <p className="text-base text-gray-600 mb-4 line-clamp-3">{description}</p>
+            <p className="text-base text-gray-600 mb-4 line-clamp-3">{shortDescription}</p>
 
             <div className="mt-auto">
               <div className="flex items-center text-sm text-gray-500 mb-4">

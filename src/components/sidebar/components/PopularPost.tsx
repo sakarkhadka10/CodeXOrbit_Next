@@ -6,7 +6,7 @@ import Link from "next/link";
 interface Post {
   id: string;
   title: string;
-  description: string;
+  shortDescription: string;
   author: string;
   date: string;
   coverImage: string;
@@ -70,7 +70,7 @@ const PopularPost = memo(() => {
       <main className="space-y-3 sm:space-y-5">
         {/* Featured Post */}
         {popularPosts[0] && (
-          <Link href={`/post/${popularPosts[0].id}`} className="block">
+          <Link href={`/blog/${popularPosts[0].slug}`} className="block">
             <div
               className="relative h-40 rounded-xl overflow-hidden bg-gray-900 shadow-md hover:shadow-lg transition-shadow bg-cover bg-center"
               style={{ backgroundImage: `url(${popularPosts[0].coverImage})` }}
@@ -84,7 +84,7 @@ const PopularPost = memo(() => {
 
         {/* Other Posts */}
         {popularPosts.slice(1).map((post) => (
-          <Link href={`/post/${post.id}`} key={post.id} className="block">
+          <Link href={`/blog/${post.slug}`} key={post.id} className="block">
             <div className="flex gap-4 group">
               <div className="w-20 h-16 rounded-md overflow-hidden relative flex-shrink-0 shadow-sm group-hover:shadow-md transition-shadow">
                 <Image

@@ -6,13 +6,13 @@ import { FaArrowDown } from "react-icons/fa6";
 interface Post {
   id: number;
   title: string;
-  description: string;
+  shortDescription: string;
   author: string;
   date: string;
   coverImage: string;
   slug: string;
   category: string;
-  tags: string;
+  tags?: string;
 }
 
 const Posts = memo(() => {
@@ -28,7 +28,7 @@ const Posts = memo(() => {
     try {
       const response = await fetch(`/api/posts?page=${page}&limit=${postsPerPage}`);
       const data = await response.json();
-      
+
       if (data && Array.isArray(data.posts)) {
         if (page === 1) {
           setPosts(data.posts);
@@ -99,8 +99,8 @@ const Posts = memo(() => {
             onClick={handleLoadMore}
             disabled={loadingMore}
             className={`flex items-center gap-2 text-white px-6 py-2 bg-[#fe9a1e] rounded-lg font-medium text-lg transition-all duration-300 ${
-              loadingMore 
-                ? 'opacity-75 cursor-not-allowed' 
+              loadingMore
+                ? 'opacity-75 cursor-not-allowed'
                 : 'hover:bg-amber-500 hover:scale-105'
             }`}
           >
@@ -111,8 +111,8 @@ const Posts = memo(() => {
               </>
             ) : (
               <>
-                Load More 
-                
+                Load More
+
                 <FaArrowDown className="ml-2" />
               </>
             )}

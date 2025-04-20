@@ -8,7 +8,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 interface Post {
   id: string;
   title: string;
-  description: string;
+  shortDescription: string;
   author: string;
   date: string;
   coverImage: string;
@@ -47,15 +47,15 @@ export default function BlogPosts() {
       if (activeCategory !== "All") queryParams.set("category", activeCategory);
       queryParams.set("page", currentPage.toString());
       queryParams.set("limit", postsPerPage.toString());
-      
+
       const response = await fetch(`/api/posts?${queryParams.toString()}`);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const data = await response.json();
-      
+
       // Ensure posts is an array
       if (Array.isArray(data.posts)) {
         setPosts(data.posts);
@@ -65,7 +65,7 @@ export default function BlogPosts() {
         setPosts([]);
         setTotalPosts(0);
       }
-      
+
       // Set categories from the API response
       if (Array.isArray(data.categories)) {
         setCategories([
@@ -109,13 +109,13 @@ export default function BlogPosts() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const params = new URLSearchParams(searchParams);
-    
+
     if (searchInput.trim()) {
       params.set("q", searchInput.trim());
     } else {
       params.delete("q");
     }
-    
+
     params.delete("page"); // Reset to page 1
     router.push(`/blog?${params.toString()}`);
   };
@@ -151,7 +151,7 @@ export default function BlogPosts() {
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
               />
-              <button 
+              <button
                 type="submit"
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-amber-500"
               >
@@ -163,8 +163,8 @@ export default function BlogPosts() {
                 <span className="text-xs text-gray-500">
                   Results for: <span className="font-medium text-amber-600">{searchTerm}</span>
                 </span>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={clearSearch}
                   className="text-xs text-amber-600 hover:text-amber-700"
                 >
@@ -222,8 +222,8 @@ export default function BlogPosts() {
               </h1>
               <div className="grid grid-cols-1 gap-8">
                 {posts.map((post) => (
-                  <Link 
-                    href={`/blog/${post.slug}`} 
+                  <Link
+                    href={`/blog/${post.slug}`}
                     key={post.id}
                     className="group"
                   >
@@ -245,7 +245,7 @@ export default function BlogPosts() {
                           {post.title}
                         </h3>
                         <p className="text-gray-600 mb-5 line-clamp-3 text-base">
-                          {post.description}
+                          {post.shortDescription}
                         </p>
                         <div className="flex items-center text-sm text-gray-500 mb-4">
                           <span className="flex items-center mr-4">
