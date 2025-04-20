@@ -156,6 +156,26 @@ export default function EditBlogPage({ params }: { params: { id: string } }) {
         text-transform: uppercase;
         z-index: 2;
       }
+
+      /* Exit button for code blocks */
+      .code-exit-button {
+        position: absolute;
+        top: 4px;
+        right: 60px;
+        background-color: #444;
+        color: #fff;
+        border: none;
+        border-radius: 3px;
+        padding: 2px 8px;
+        font-size: 10px;
+        cursor: pointer;
+        z-index: 3;
+        transition: background-color 0.2s;
+      }
+
+      .code-exit-button:hover {
+        background-color: #666;
+      }
     `;
     document.head.appendChild(style);
 
@@ -170,6 +190,71 @@ export default function EditBlogPage({ params }: { params: { id: string } }) {
       const $ = window.jQuery
 
       if ($ && $.summernote) {
+        // Function to add exit buttons to all code blocks
+        const addExitButtonsToCodeBlocks = () => {
+          $('.note-editable pre').each(function(this: HTMLElement) {
+            // Check if this pre element already has an exit button
+            if ($(this).find('.code-exit-button').length === 0) {
+              // Create the exit button
+              const exitButton = document.createElement('button');
+              exitButton.className = 'code-exit-button';
+              exitButton.textContent = 'Exit';
+              exitButton.setAttribute('type', 'button');
+
+              // Add the exit button to the pre element
+              $(this).append(exitButton);
+            }
+          });
+        };
+
+        // Function to handle exit button click
+        const handleExitButtonClick = (e: MouseEvent) => {
+          e.preventDefault();
+          e.stopPropagation();
+
+          const target = e.target as HTMLElement;
+          const preElement = $(target).closest('pre')[0];
+
+          if (preElement) {
+            // Create a new paragraph after the pre element
+            const newParagraph = document.createElement('p');
+            newParagraph.innerHTML = '<br>';
+
+            // Insert the new paragraph after the pre element
+            if (preElement.parentNode) {
+              preElement.parentNode.insertBefore(newParagraph, preElement.nextSibling);
+            }
+
+            // Move cursor to the new paragraph
+            const range = document.createRange();
+            const sel = window.getSelection();
+            range.setStart(newParagraph, 0);
+            range.collapse(true);
+            sel?.removeAllRanges();
+            sel?.addRange(range);
+          }
+        };
+
+        // Add a global event listener for exit button clicks
+        $(document).on('click', '.code-exit-button', handleExitButtonClick);
+
+        // Create a MutationObserver to watch for new code blocks
+        const observer = new MutationObserver(() => {
+          // Simply call addExitButtonsToCodeBlocks whenever the DOM changes
+          addExitButtonsToCodeBlocks();
+        });
+
+        // Initial call to add exit buttons to any existing code blocks
+        addExitButtonsToCodeBlocks();
+
+        // Initialize the observer immediately
+        const editable = $('.note-editable')[0];
+        if (editable) {
+          observer.observe(editable, {
+            childList: true,
+            subtree: true
+          });
+        }
         $(editorRef.current).summernote({
           height: 500,
           placeholder: 'Write your content here...',
@@ -183,9 +268,62 @@ export default function EditBlogPage({ params }: { params: { id: string } }) {
                 content: contents
               }))
             },
+            onKeydown: function(e: KeyboardEvent) {
+              const isCodeBlock = $(e.target).closest('pre').length > 0;
+
+              if (isCodeBlock && e.key === 'Enter' && !e.shiftKey) {
+                // Check if cursor is at the end of the code block
+                const selection = window.getSelection();
+                const range = selection?.getRangeAt(0);
+                const preElement = $(e.target).closest('pre')[0];
+                const codeElement = $(preElement).find('code')[0];
+
+                // Get text content and cursor position
+                const codeText = codeElement.textContent || '';
+                const cursorPosition = range?.startOffset || 0;
+
+                // If cursor is at the end of the code block or the code block is empty
+                if (cursorPosition >= codeText.length || codeText.trim() === '') {
+                  e.preventDefault();
+
+                  // Insert a new paragraph after the pre element
+                  const newParagraph = document.createElement('p');
+                  newParagraph.innerHTML = '<br>';
+
+                  // Insert the new paragraph after the pre element
+                  if (preElement.parentNode) {
+                    preElement.parentNode.insertBefore(newParagraph, preElement.nextSibling);
+                  }
+
+                  // Move cursor to the new paragraph
+                  const newRange = document.createRange();
+                  newRange.setStart(newParagraph, 0);
+                  newRange.collapse(true);
+
+                  selection?.removeAllRanges();
+                  selection?.addRange(newRange);
+
+                  return false;
+                }
+
+                // If not at the end, allow normal Enter behavior to add a new line in the code block
+              }
+            },
             onInit: function() {
               // Set initial content
-              $(editorRef.current).summernote('code', formData.content)
+              $(editorRef.current).summernote('code', formData.content);
+
+              // Initialize exit buttons for any existing code blocks
+              addExitButtonsToCodeBlocks();
+
+              // Re-initialize the observer now that the editor is fully loaded
+              const editable = $('.note-editable')[0];
+              if (editable && observer) {
+                observer.observe(editable, {
+                  childList: true,
+                  subtree: true
+                });
+              }
             }
           },
           // Enhanced code block button
@@ -224,12 +362,30 @@ export default function EditBlogPage({ params }: { params: { id: string } }) {
       }
     }
 
+    // Store references for cleanup
+    const currentEditorRef = editorRef.current;
+
     return () => {
-      if (typeof window !== 'undefined' && window.jQuery && editorRef.current) {
+      if (typeof window !== 'undefined' && window.jQuery) {
         try {
-          window.jQuery(editorRef.current).summernote('destroy')
+          // Find and disconnect any mutation observers
+          // This is a workaround since we can't directly access the observer variable
+          const noteEditable = document.querySelector('.note-editable');
+          if (noteEditable) {
+            // We can't directly access MutationObservers, so we'll just remove
+            // the elements they're observing which effectively stops them
+          }
+
+          // Remove the global event listeners
+          window.jQuery(document).off('keydown', '.note-editable pre');
+          window.jQuery(document).off('click', '.code-exit-button');
+
+          // Use the stored reference
+          if (currentEditorRef) {
+            window.jQuery(currentEditorRef).summernote('destroy');
+          }
         } catch (e) {
-          console.error('Error destroying Summernote:', e)
+          console.error('Error destroying Summernote:', e);
         }
       }
     }

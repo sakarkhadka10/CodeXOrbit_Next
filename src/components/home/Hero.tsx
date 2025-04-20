@@ -23,12 +23,12 @@ const Hero = () => {
               </span>{" "}
               With {siteConfig.name}
             </h1>
-            <span className="text-base text-[1rem] font-normal text-white  mx-auto text-shadow-2xs">
+            <span className="text-base text-[1rem] font-normal text-white  mx-auto text-shadow-2xs ">
               {siteConfig.description} Blast off into a world of tutorials,
               projects, and resources designed to elevate your development
               skills.
             </span>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mt-3">
               <Link
                 href="#projects"
                 className="px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg font-medium hover:from-amber-600 hover:to-amber-700 transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 group"

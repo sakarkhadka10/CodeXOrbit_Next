@@ -12,6 +12,7 @@ interface Post {
   coverImage: string;
   slug: string;
   category: string;
+  tags: string;
 }
 
 const Posts = memo(() => {

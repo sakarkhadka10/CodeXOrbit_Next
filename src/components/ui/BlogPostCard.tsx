@@ -11,6 +11,7 @@ interface BlogPostCardProps {
   coverImage: string;
   slug: string;
   category: string;
+  tags: string;
 }
 
 const BlogPostCard = ({
@@ -21,13 +22,14 @@ const BlogPostCard = ({
   coverImage,
   slug,
   category,
+  tags
 }: BlogPostCardProps) => {
   return (
     <div className="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 hover:translate-y-[-5px]">
       <article className="border border-[#e3e3ff] overflow-hidden rounded-xl">
         <div className="flex flex-col md:flex-row gap-4">
           {/* Image container */}
-          <Link href={`/${slug}`} className="block w-full md:w-2/5 overflow-hidden">
+          <Link href={`/blog/${slug}`} className="block w-full md:w-2/5 overflow-hidden">
             <div className="aspect-[16/9] w-full h-56 md:h-full relative">
               <Image
                 src={coverImage}
@@ -37,14 +39,14 @@ const BlogPostCard = ({
               />
               <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <span className="absolute left-4 top-4 px-3 py-1.5 text-sm bg-amber-500 text-white font-medium text-center rounded-full shadow-md">
-                {category}
+                {tags}
               </span>
             </div>
           </Link>
           
           {/* Content container */}
           <div className="md:w-3/5 p-5 md:p-6 flex flex-col">
-            <Link href={`/${slug}`} className="group/title">
+            <Link href={`/blog/${slug}`} className="group/title">
               <h1 className="text-xl sm:text-2xl font-bold mb-3 text-gray-800 group-hover/title:text-amber-600 transition-colors line-clamp-2">
                 {title}
               </h1>
