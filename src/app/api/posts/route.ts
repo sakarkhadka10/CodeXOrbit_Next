@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
       shortDescription: (post.excerpt || '').length > 100 ? (post.excerpt || '').substring(0, 100) + '...' : (post.excerpt || ''),
       author: post.author,
       date: post.createdAt.toISOString(),
-      coverImage: "/img/frontendbg.png", // Default image
+      coverImage: post.coverImage || "/img/frontendbg.png", // Use post image or default
       slug: post.slug,
       category: post.category ? post.category.name : (post.tags || 'Uncategorized'),
       content: post.content
@@ -134,6 +134,7 @@ export async function POST(request: NextRequest) {
       author: data.author || 'Anonymous',
       excerpt: data.shortDescription || data.excerpt || '',
       tags: data.tags || '',
+      coverImage: data.coverImage || null,
       published: Boolean(data.published)
     };
 

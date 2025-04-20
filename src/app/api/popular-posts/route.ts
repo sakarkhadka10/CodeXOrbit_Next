@@ -17,7 +17,7 @@ export async function GET() {
     const popularPosts = dbPosts.map(post => ({
       id: post.id,
       title: post.title,
-      coverImage: "/img/frontendbg.png", // Default image
+      coverImage: post.coverImage || "/img/frontendbg.png", // Use post image or default
       shortDescription: (post.excerpt || '').length > 100 ? (post.excerpt || '').substring(0, 100) + '...' : (post.excerpt || ''),
       author: post.author,
       date: new Date(post.createdAt).toLocaleDateString('en-US', {

@@ -141,6 +141,7 @@ exports.Prisma.BlogScalarFieldEnum = {
   author: 'author',
   excerpt: 'excerpt',
   tags: 'tags',
+  coverImage: 'coverImage',
   categoryId: 'categoryId'
 };
 

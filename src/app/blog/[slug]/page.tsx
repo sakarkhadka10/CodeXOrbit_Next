@@ -1,10 +1,10 @@
 import { notFound } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
 import { FaUser, FaTag, FaShare, FaHome, FaBookmark, FaHeart } from "react-icons/fa";
 import { Metadata } from "next";
 import SideBar from "@/components/sidebar/SideBar";
 import CodeBlock from "@/components/CodeBlock";
+import BlogHeroImage from "@/components/BlogHeroImage";
 import { posts } from "@/data/posts";
 import { prisma } from "@/lib/prisma"; // Import the singleton prisma instance
 
@@ -39,6 +39,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
           type: "article",
           authors: [post.author],
           publishedTime: post.createdAt.toString(),
+          images: [post.coverImage || "/img/frontendbg.png"],
         },
       };
     }
@@ -55,6 +56,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
           type: "article",
           authors: [localPost.author],
           publishedTime: localPost.date,
+          images: [localPost.coverImage],
         },
       };
     }
@@ -88,7 +90,7 @@ export default async function BlogPost({ params }: { params: { slug: string } })
         shortDescription: (dbPost.excerpt || '').length > 100 ? (dbPost.excerpt || '').substring(0, 100) + '...' : (dbPost.excerpt || ''),
         author: dbPost.author,
         date: dbPost.createdAt.toISOString(),
-        coverImage: "/img/frontendbg.png", // Default image
+        coverImage: dbPost.coverImage || "/img/frontendbg.png", // Use post image or default
         slug: dbPost.slug,
         category: dbPost.category ? dbPost.category.name : (dbPost.tags || 'Uncategorized'),
         content: dbPost.content
@@ -157,22 +159,10 @@ function renderPost(post: Post) {
           <div className="lg:col-span-9">
             <article className="bg-white rounded-2xl shadow-lg overflow-hidden">
               {/* Hero Image */}
-              <div className="relative h-[40vh] sm:h-[50vh] w-full">
-                <Image
-                  src={post.coverImage}
-                  alt={post.title}
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 75vw"
-                  className="object-cover"
-                  priority
-                  placeholder="blur"
-                  blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAEtAJJXIDTjwAAAABJRU5ErkJggg=="
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
-              </div>
+              <BlogHeroImage coverImage={post.coverImage} title={post.title} />
 
               {/* Title Card - Overlapping the image */}
-              <div className="px-4 sm:px-8 -mt-24 relative z-10">
+              <div className="px-4 sm:px-8 -mt-32 relative z-10">
                 <div className="bg-white rounded-xl shadow-xl p-6 sm:p-8">
                   {/* Category Badge */}
                   <div className="flex justify-between items-center mb-4">

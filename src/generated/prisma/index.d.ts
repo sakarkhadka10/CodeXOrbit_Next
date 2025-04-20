@@ -1883,6 +1883,7 @@ export namespace Prisma {
     author: string | null
     excerpt: string | null
     tags: string | null
+    coverImage: string | null
     categoryId: string | null
   }
 
@@ -1897,6 +1898,7 @@ export namespace Prisma {
     author: string | null
     excerpt: string | null
     tags: string | null
+    coverImage: string | null
     categoryId: string | null
   }
 
@@ -1911,6 +1913,7 @@ export namespace Prisma {
     author: number
     excerpt: number
     tags: number
+    coverImage: number
     categoryId: number
     _all: number
   }
@@ -1935,6 +1938,7 @@ export namespace Prisma {
     author?: true
     excerpt?: true
     tags?: true
+    coverImage?: true
     categoryId?: true
   }
 
@@ -1949,6 +1953,7 @@ export namespace Prisma {
     author?: true
     excerpt?: true
     tags?: true
+    coverImage?: true
     categoryId?: true
   }
 
@@ -1963,6 +1968,7 @@ export namespace Prisma {
     author?: true
     excerpt?: true
     tags?: true
+    coverImage?: true
     categoryId?: true
     _all?: true
   }
@@ -2064,6 +2070,7 @@ export namespace Prisma {
     author: string
     excerpt: string | null
     tags: string | null
+    coverImage: string | null
     categoryId: string | null
     _count: BlogCountAggregateOutputType | null
     _avg: BlogAvgAggregateOutputType | null
@@ -2097,6 +2104,7 @@ export namespace Prisma {
     author?: boolean
     excerpt?: boolean
     tags?: boolean
+    coverImage?: boolean
     categoryId?: boolean
     category?: boolean | Blog$categoryArgs<ExtArgs>
   }, ExtArgs["result"]["blog"]>
@@ -2113,6 +2121,7 @@ export namespace Prisma {
     author?: boolean
     excerpt?: boolean
     tags?: boolean
+    coverImage?: boolean
     categoryId?: boolean
   }
 
@@ -2136,6 +2145,7 @@ export namespace Prisma {
       author: string
       excerpt: string | null
       tags: string | null
+      coverImage: string | null
       categoryId: string | null
     }, ExtArgs["result"]["blog"]>
     composites: {}
@@ -2517,6 +2527,7 @@ export namespace Prisma {
     readonly author: FieldRef<"Blog", 'String'>
     readonly excerpt: FieldRef<"Blog", 'String'>
     readonly tags: FieldRef<"Blog", 'String'>
+    readonly coverImage: FieldRef<"Blog", 'String'>
     readonly categoryId: FieldRef<"Blog", 'String'>
   }
     
@@ -2882,6 +2893,7 @@ export namespace Prisma {
     author: 'author',
     excerpt: 'excerpt',
     tags: 'tags',
+    coverImage: 'coverImage',
     categoryId: 'categoryId'
   };
 
@@ -3016,6 +3028,7 @@ export namespace Prisma {
     author?: StringFilter<"Blog"> | string
     excerpt?: StringNullableFilter<"Blog"> | string | null
     tags?: StringNullableFilter<"Blog"> | string | null
+    coverImage?: StringNullableFilter<"Blog"> | string | null
     categoryId?: StringNullableFilter<"Blog"> | string | null
     category?: XOR<CategoryNullableRelationFilter, CategoryWhereInput> | null
   }
@@ -3031,6 +3044,7 @@ export namespace Prisma {
     author?: SortOrder
     excerpt?: SortOrderInput | SortOrder
     tags?: SortOrderInput | SortOrder
+    coverImage?: SortOrderInput | SortOrder
     categoryId?: SortOrderInput | SortOrder
     category?: CategoryOrderByWithRelationInput
   }
@@ -3049,6 +3063,7 @@ export namespace Prisma {
     author?: StringFilter<"Blog"> | string
     excerpt?: StringNullableFilter<"Blog"> | string | null
     tags?: StringNullableFilter<"Blog"> | string | null
+    coverImage?: StringNullableFilter<"Blog"> | string | null
     categoryId?: StringNullableFilter<"Blog"> | string | null
     category?: XOR<CategoryNullableRelationFilter, CategoryWhereInput> | null
   }, "id" | "slug">
@@ -3064,6 +3079,7 @@ export namespace Prisma {
     author?: SortOrder
     excerpt?: SortOrderInput | SortOrder
     tags?: SortOrderInput | SortOrder
+    coverImage?: SortOrderInput | SortOrder
     categoryId?: SortOrderInput | SortOrder
     _count?: BlogCountOrderByAggregateInput
     _avg?: BlogAvgOrderByAggregateInput
@@ -3086,6 +3102,7 @@ export namespace Prisma {
     author?: StringWithAggregatesFilter<"Blog"> | string
     excerpt?: StringNullableWithAggregatesFilter<"Blog"> | string | null
     tags?: StringNullableWithAggregatesFilter<"Blog"> | string | null
+    coverImage?: StringNullableWithAggregatesFilter<"Blog"> | string | null
     categoryId?: StringNullableWithAggregatesFilter<"Blog"> | string | null
   }
 
@@ -3159,6 +3176,7 @@ export namespace Prisma {
     author: string
     excerpt?: string | null
     tags?: string | null
+    coverImage?: string | null
     category?: CategoryCreateNestedOneWithoutBlogsInput
   }
 
@@ -3173,6 +3191,7 @@ export namespace Prisma {
     author: string
     excerpt?: string | null
     tags?: string | null
+    coverImage?: string | null
     categoryId?: string | null
   }
 
@@ -3186,6 +3205,7 @@ export namespace Prisma {
     author?: StringFieldUpdateOperationsInput | string
     excerpt?: NullableStringFieldUpdateOperationsInput | string | null
     tags?: NullableStringFieldUpdateOperationsInput | string | null
+    coverImage?: NullableStringFieldUpdateOperationsInput | string | null
     category?: CategoryUpdateOneWithoutBlogsNestedInput
   }
 
@@ -3200,6 +3220,7 @@ export namespace Prisma {
     author?: StringFieldUpdateOperationsInput | string
     excerpt?: NullableStringFieldUpdateOperationsInput | string | null
     tags?: NullableStringFieldUpdateOperationsInput | string | null
+    coverImage?: NullableStringFieldUpdateOperationsInput | string | null
     categoryId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
@@ -3214,6 +3235,7 @@ export namespace Prisma {
     author: string
     excerpt?: string | null
     tags?: string | null
+    coverImage?: string | null
     categoryId?: string | null
   }
 
@@ -3227,6 +3249,7 @@ export namespace Prisma {
     author?: StringFieldUpdateOperationsInput | string
     excerpt?: NullableStringFieldUpdateOperationsInput | string | null
     tags?: NullableStringFieldUpdateOperationsInput | string | null
+    coverImage?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type BlogUncheckedUpdateManyInput = {
@@ -3240,6 +3263,7 @@ export namespace Prisma {
     author?: StringFieldUpdateOperationsInput | string
     excerpt?: NullableStringFieldUpdateOperationsInput | string | null
     tags?: NullableStringFieldUpdateOperationsInput | string | null
+    coverImage?: NullableStringFieldUpdateOperationsInput | string | null
     categoryId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
@@ -3384,6 +3408,7 @@ export namespace Prisma {
     author?: SortOrder
     excerpt?: SortOrder
     tags?: SortOrder
+    coverImage?: SortOrder
     categoryId?: SortOrder
   }
 
@@ -3402,6 +3427,7 @@ export namespace Prisma {
     author?: SortOrder
     excerpt?: SortOrder
     tags?: SortOrder
+    coverImage?: SortOrder
     categoryId?: SortOrder
   }
 
@@ -3416,6 +3442,7 @@ export namespace Prisma {
     author?: SortOrder
     excerpt?: SortOrder
     tags?: SortOrder
+    coverImage?: SortOrder
     categoryId?: SortOrder
   }
 
@@ -3705,6 +3732,7 @@ export namespace Prisma {
     author: string
     excerpt?: string | null
     tags?: string | null
+    coverImage?: string | null
   }
 
   export type BlogUncheckedCreateWithoutCategoryInput = {
@@ -3718,6 +3746,7 @@ export namespace Prisma {
     author: string
     excerpt?: string | null
     tags?: string | null
+    coverImage?: string | null
   }
 
   export type BlogCreateOrConnectWithoutCategoryInput = {
@@ -3760,6 +3789,7 @@ export namespace Prisma {
     author?: StringFilter<"Blog"> | string
     excerpt?: StringNullableFilter<"Blog"> | string | null
     tags?: StringNullableFilter<"Blog"> | string | null
+    coverImage?: StringNullableFilter<"Blog"> | string | null
     categoryId?: StringNullableFilter<"Blog"> | string | null
   }
 
@@ -3822,6 +3852,7 @@ export namespace Prisma {
     author: string
     excerpt?: string | null
     tags?: string | null
+    coverImage?: string | null
   }
 
   export type BlogUpdateWithoutCategoryInput = {
@@ -3834,6 +3865,7 @@ export namespace Prisma {
     author?: StringFieldUpdateOperationsInput | string
     excerpt?: NullableStringFieldUpdateOperationsInput | string | null
     tags?: NullableStringFieldUpdateOperationsInput | string | null
+    coverImage?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type BlogUncheckedUpdateWithoutCategoryInput = {
@@ -3847,6 +3879,7 @@ export namespace Prisma {
     author?: StringFieldUpdateOperationsInput | string
     excerpt?: NullableStringFieldUpdateOperationsInput | string | null
     tags?: NullableStringFieldUpdateOperationsInput | string | null
+    coverImage?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type BlogUncheckedUpdateManyWithoutCategoryInput = {
@@ -3860,6 +3893,7 @@ export namespace Prisma {
     author?: StringFieldUpdateOperationsInput | string
     excerpt?: NullableStringFieldUpdateOperationsInput | string | null
     tags?: NullableStringFieldUpdateOperationsInput | string | null
+    coverImage?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
 

@@ -65,6 +65,7 @@ export async function PUT(
         author: data.author,
         excerpt: data.shortDescription || data.excerpt || null,
         tags: data.tags || null,
+        coverImage: data.coverImage || null,
         published: data.published || false
       }
     })

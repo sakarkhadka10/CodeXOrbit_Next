@@ -23,7 +23,7 @@ export async function GET(
         shortDescription: (dbPost.excerpt || '').length > 100 ? (dbPost.excerpt || '').substring(0, 100) + '...' : (dbPost.excerpt || ''),
         author: dbPost.author,
         date: dbPost.createdAt.toISOString(),
-        coverImage: "/img/frontendbg.png", // Default image
+        coverImage: dbPost.coverImage || "/img/frontendbg.png", // Use post image or default
         slug: dbPost.slug,
         category: dbPost.category ? dbPost.category.name : (dbPost.tags || 'Uncategorized'),
         content: dbPost.content

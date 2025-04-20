@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { FaArrowLeft, FaSave } from 'react-icons/fa'
 import Script from 'next/script'
+import ImagePreview from '@/components/ImagePreview'
 
 // Define proper types for your form data
 interface FormData {
@@ -592,6 +593,36 @@ export default function CreateBlogPage() {
               Content
             </label>
             <div ref={editorRef} className="border border-gray-300 rounded"></div>
+          </div>
+
+          <div>
+            <label htmlFor="coverImage" className="block mb-1 font-medium">
+              Cover Image URL
+            </label>
+            <input
+              type="text"
+              id="coverImage"
+              name="coverImage"
+              value={formData.coverImage}
+              onChange={handleChange}
+              placeholder="https://example.com/image.jpg"
+              className="w-full p-2 border border-gray-300 rounded"
+            />
+            {formData.coverImage && (
+              <div className="mt-2">
+                <p className="text-xs text-gray-500 mb-1">Preview:</p>
+                <ImagePreview
+                  src={formData.coverImage}
+                  alt="Cover preview"
+                  onImageError={(defaultImage) => {
+                    setFormData(prev => ({
+                      ...prev,
+                      coverImage: defaultImage
+                    }));
+                  }}
+                />
+              </div>
+            )}
           </div>
 
           <div>
