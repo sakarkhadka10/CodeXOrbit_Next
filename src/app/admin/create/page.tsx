@@ -22,7 +22,7 @@ interface FormData {
 
 // Define Category type
 interface Category {
-  id: string;
+  slug: string;
   name: string;
 }
 
@@ -490,8 +490,8 @@ export default function CreateBlogPage() {
 
   return (
     <div className="max-w-4xl mx-auto p-4">
-      <div className="flex items-center mb-6">
-        <Link href="/admin/posts" className="text-blue-500 hover:text-blue-700 flex items-center">
+      <div className="flex items-center mb-6 mt-22">
+        <Link href="/admin" className="text-blue-500 hover:text-blue-700 flex items-center">
           <FaArrowLeft className="mr-2" />
           Back to Posts
         </Link>
@@ -556,7 +556,7 @@ export default function CreateBlogPage() {
             >
               <option value="">Select a category</option>
               {categories.map((category) => (
-                <option key={category.id} value={category.id}>
+                <option key={category.slug} value={category.slug}>
                   {category.name}
                 </option>
               ))}

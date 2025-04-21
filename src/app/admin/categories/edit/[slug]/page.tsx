@@ -80,7 +80,7 @@ export default function EditCategoryPage({ params }: { params: { slug: string } 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 py-10">
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 mt-15">
           <div className="text-center py-8">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
             <p className="mt-2 text-gray-600">Loading category...</p>
@@ -92,7 +92,7 @@ export default function EditCategoryPage({ params }: { params: { slug: string } 
 
   return (
     <div className="min-h-screen bg-gray-50 py-10">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 mt-15">
         <div className="mb-8">
           <Link 
             href="/admin/categories" 

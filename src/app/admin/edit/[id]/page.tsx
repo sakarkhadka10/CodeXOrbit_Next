@@ -31,7 +31,7 @@ export default function EditBlogPage({ params }: { params: { id: string } }) {
     tags: '',
     published: false,
   })
-  const [categories, setCategories] = useState<any[]>([])
+  const [categories, setCategories] = useState<Array<{slug: string, name: string}>>([])
 
   // Fetch blog post data
   useEffect(() => {
@@ -521,7 +521,7 @@ export default function EditBlogPage({ params }: { params: { id: string } }) {
               >
                 <option value="">Select a category</option>
                 {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
+                  <option key={category.slug} value={category.slug}>
                     {category.name}
                   </option>
                 ))}

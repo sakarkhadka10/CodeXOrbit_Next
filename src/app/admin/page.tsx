@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { FaPlus, FaEdit, FaTrash, FaEye } from 'react-icons/fa'
+import { FaList } from 'react-icons/fa6'
 
 export default function AdminPage() {
   const router = useRouter()
@@ -55,14 +56,20 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex justify-between items-center mb-8 mt-15">
           <h1 className="text-3xl font-bold text-gray-900">Blog Management</h1>
+          <div className='flex gap-5'>
+          <Link href="/admin/categories" 
+          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+            <FaList/> Manage Category
+          </Link>
           <Link 
             href="/admin/create" 
             className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-          >
+            >
             <FaPlus /> New Post
           </Link>
+            </div>
         </div>
 
         <div className="bg-white shadow-md rounded-lg overflow-hidden">

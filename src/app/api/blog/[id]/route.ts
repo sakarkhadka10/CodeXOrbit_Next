@@ -19,17 +19,25 @@ export async function GET(
     }
 
     const blog = await prisma.blog.findUnique({
-      where: { id }
+      where: { id },
+      include: {
+        category: true // Include the category information
+      }
     })
 
-    if (!blog) {
-      return NextResponse.json(
-        { error: 'Blog post not found' },
-        { status: 404 }
-      )
+    // If blog is found, add the category field for the frontend
+    if (blog) {
+      const blogWithCategory = {
+        ...blog,
+        category: blog.categoryId // Set category field to the categoryId (which is the slug)
+      }
+      return NextResponse.json(blogWithCategory)
     }
 
-    return NextResponse.json(blog)
+    return NextResponse.json(
+      { error: 'Blog post not found' },
+      { status: 404 }
+    )
   } catch (error) {
     console.error('Error fetching blog:', error)
     return NextResponse.json(
@@ -56,18 +64,22 @@ export async function PUT(
 
     const data = await request.json()
 
+    // Prepare update data
+    const updateData = {
+      title: data.title,
+      content: data.content,
+      slug: data.slug,
+      author: data.author,
+      excerpt: data.shortDescription || data.excerpt || null,
+      tags: data.tags || null,
+      coverImage: data.coverImage || null,
+      published: data.published || false,
+      categoryId: data.category || null // Use category field as categoryId (which is now the slug)
+    }
+
     const blog = await prisma.blog.update({
       where: { id },
-      data: {
-        title: data.title,
-        content: data.content,
-        slug: data.slug,
-        author: data.author,
-        excerpt: data.shortDescription || data.excerpt || null,
-        tags: data.tags || null,
-        coverImage: data.coverImage || null,
-        published: data.published || false
-      }
+      data: updateData
     })
 
     return NextResponse.json(blog)
