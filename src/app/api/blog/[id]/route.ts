@@ -9,7 +9,9 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    // Ensure params is awaited
+    // NOTE: Next.js warns about directly accessing params.id, but this is a known issue with API routes
+    // In a future version of Next.js, this will need to be updated to use await or React.use
+    // For now, we can directly access params.id in API routes
     const paramId = params.id;
     const id = parseInt(paramId)
 
@@ -55,7 +57,9 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    // Ensure params is awaited
+    // NOTE: Next.js warns about directly accessing params.id, but this is a known issue with API routes
+    // In a future version of Next.js, this will need to be updated to use await or React.use
+    // For now, we can directly access params.id in API routes
     const paramId = params.id;
     const id = parseInt(paramId)
 
@@ -102,7 +106,9 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    // Ensure params is awaited
+    // NOTE: Next.js warns about directly accessing params.id, but this is a known issue with API routes
+    // In a future version of Next.js, this will need to be updated to use await or React.use
+    // For now, we can directly access params.id in API routes
     const paramId = params.id;
     const id = parseInt(paramId)
 

@@ -1,21 +1,18 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Script from 'next/script'
 import { FaArrowLeft, FaSave } from 'react-icons/fa'
 import ImagePreview from '@/components/ImagePreview'
 
-// Define jQuery for TypeScript
-declare global {
-  interface Window {
-    jQuery: any;
-    $: any;
-  }
-}
+// jQuery types are now defined in src/types/jquery.d.ts
 
-export default function EditBlogPage({ params }: { params: { id: string } }) {
+export default function EditBlogPage({ params }: { params: Promise<{ id: string }> }) {
+  // Unwrap params using React.use() as recommended by Next.js
+  const resolvedParams = React.use(params);
+  const id = resolvedParams.id;
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -29,6 +26,7 @@ export default function EditBlogPage({ params }: { params: { id: string } }) {
     shortDescription: '',
     category: '',
     tags: '',
+    coverImage: '',
     published: false,
   })
   const [categories, setCategories] = useState<Array<{slug: string, name: string}>>([])
@@ -37,7 +35,7 @@ export default function EditBlogPage({ params }: { params: { id: string } }) {
   useEffect(() => {
     const fetchBlog = async () => {
       try {
-        const response = await fetch(`/api/blog/${params.id}`)
+        const response = await fetch(`/api/blog/${id}`)
         if (response.ok) {
           const data = await response.json()
           setFormData({
@@ -48,6 +46,7 @@ export default function EditBlogPage({ params }: { params: { id: string } }) {
             shortDescription: data.shortDescription || '',
             category: data.category || '',
             tags: data.tags || '',
+            coverImage: data.coverImage || '',
             published: data.published || false,
           })
         }
@@ -59,7 +58,7 @@ export default function EditBlogPage({ params }: { params: { id: string } }) {
     }
 
     fetchBlog()
-  }, [params.id])
+  }, [id])
 
   // Fetch categories
   useEffect(() => {
@@ -188,7 +187,9 @@ export default function EditBlogPage({ params }: { params: { id: string } }) {
   // Initialize Summernote editor
   useEffect(() => {
     if (typeof window !== 'undefined' && editorLoaded && editorRef.current && !loading) {
-      const $ = window.jQuery
+      // Use type assertion to tell TypeScript that jQuery is available on window
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const $ = (window as any).jQuery
 
       if ($ && $.summernote) {
         // Function to add exit buttons to all code blocks
@@ -209,7 +210,7 @@ export default function EditBlogPage({ params }: { params: { id: string } }) {
         };
 
         // Function to handle exit button click
-        const handleExitButtonClick = (e: MouseEvent) => {
+        const handleExitButtonClick = (e: Event) => {
           e.preventDefault();
           e.stopPropagation();
 
@@ -256,7 +257,9 @@ export default function EditBlogPage({ params }: { params: { id: string } }) {
             subtree: true
           });
         }
-        $(editorRef.current).summernote({
+        const editor = editorRef.current;
+        if (editor) {
+          $(editor).summernote({
           height: 500,
           placeholder: 'Write your content here...',
           styleTags: ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote'],
@@ -269,14 +272,16 @@ export default function EditBlogPage({ params }: { params: { id: string } }) {
                 content: contents
               }))
             },
-            onKeydown: function(e: KeyboardEvent) {
-              const isCodeBlock = $(e.target).closest('pre').length > 0;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            onKeydown: function(e: any) {
+              const target = e.target as HTMLElement;
+              const isCodeBlock = $(target).closest('pre').length > 0;
 
               if (isCodeBlock && e.key === 'Enter' && !e.shiftKey) {
                 // Check if cursor is at the end of the code block
                 const selection = window.getSelection();
                 const range = selection?.getRangeAt(0);
-                const preElement = $(e.target).closest('pre')[0];
+                const preElement = $(target).closest('pre')[0];
                 const codeElement = $(preElement).find('code')[0];
 
                 // Get text content and cursor position
@@ -312,7 +317,10 @@ export default function EditBlogPage({ params }: { params: { id: string } }) {
             },
             onInit: function() {
               // Set initial content
-              $(editorRef.current).summernote('code', formData.content);
+              const editor = editorRef.current;
+              if (editor) {
+                $(editor).summernote('code', formData.content);
+              }
 
               // Initialize exit buttons for any existing code blocks
               addExitButtonsToCodeBlocks();
@@ -329,11 +337,12 @@ export default function EditBlogPage({ params }: { params: { id: string } }) {
           },
           // Enhanced code block button
           buttons: {
-            codeblock: function(context: any) {
+            codeblock: function(context: SummernoteContext) {
               const ui = $.summernote.ui;
               const button = ui.button({
-                contents: '<i class="fa fa-code"></i>',
+                contents: '<i class="fa fa-code" style="font-size: 1.2em;"></i>',
                 tooltip: 'Insert Code Block',
+                className: 'note-btn-codeblock',
                 click: function() {
                   // Create a code block with visual styling in the editor
                   const codeBlock = `<pre><code>// Your code here</code></pre>`;
@@ -355,6 +364,7 @@ export default function EditBlogPage({ params }: { params: { id: string } }) {
             ['view', ['fullscreen', 'codeview', 'help']]
           ]
         });
+        }
 
         // Apply custom styling to match site theme
         $('.note-toolbar').addClass('bg-gray-50 border-b border-amber-200');
@@ -367,7 +377,8 @@ export default function EditBlogPage({ params }: { params: { id: string } }) {
     const currentEditorRef = editorRef.current;
 
     return () => {
-      if (typeof window !== 'undefined' && window.jQuery) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if (typeof window !== 'undefined' && (window as any).jQuery) {
         try {
           // Find and disconnect any mutation observers
           // This is a workaround since we can't directly access the observer variable
@@ -378,12 +389,15 @@ export default function EditBlogPage({ params }: { params: { id: string } }) {
           }
 
           // Remove the global event listeners
-          window.jQuery(document).off('keydown', '.note-editable pre');
-          window.jQuery(document).off('click', '.code-exit-button');
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (window as any).jQuery(document).off('keydown', '.note-editable pre');
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (window as any).jQuery(document).off('click', '.code-exit-button');
 
           // Use the stored reference
           if (currentEditorRef) {
-            window.jQuery(currentEditorRef).summernote('destroy');
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (window as any).jQuery(currentEditorRef).summernote('destroy');
           }
         } catch (e) {
           console.error('Error destroying Summernote:', e);
@@ -407,7 +421,7 @@ export default function EditBlogPage({ params }: { params: { id: string } }) {
     setSaving(true)
 
     try {
-      const response = await fetch(`/api/blog/${params.id}`, {
+      const response = await fetch(`/api/blog/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -425,24 +439,27 @@ export default function EditBlogPage({ params }: { params: { id: string } }) {
     }
   }
 
-  const generateSlug = () => {
-    const slug = formData.title
-      .toLowerCase()
-      .replace(/[^\w\s]/gi, '')
-      .replace(/\s+/g, '-')
+  // Generate slug from title
+  useEffect(() => {
+    if (formData.title) {
+      const slug = formData.title
+        .toLowerCase()
+        .replace(/[^\w\s]/gi, '')
+        .replace(/\s+/g, '-')
 
-    setFormData(prev => ({
-      ...prev,
-      slug
-    }))
-  }
+      setFormData(prev => ({
+        ...prev,
+        slug
+      }))
+    }
+  }, [formData.title])
 
   return (
     <div className="max-w-4xl mx-auto p-4">
-      <div className="flex items-center mb-6">
+      <div className="flex items-center mb-6 mt-22">
         <Link href="/admin" className="text-blue-500 hover:text-blue-700 flex items-center">
           <FaArrowLeft className="mr-2" />
-          Back to Admin
+          Back to Posts
         </Link>
         <h1 className="text-2xl font-bold ml-auto">Edit Blog Post</h1>
       </div>
@@ -469,29 +486,18 @@ export default function EditBlogPage({ params }: { params: { id: string } }) {
               />
             </div>
 
-            <div className="flex gap-2">
-              <div className="flex-grow">
-                <label htmlFor="slug" className="block mb-1 font-medium">
-                  Slug
-                </label>
-                <input
-                  type="text"
-                  id="slug"
-                  name="slug"
-                  value={formData.slug}
-                  onChange={handleChange}
-                  className="w-full p-2 border border-gray-300 rounded"
-                />
-              </div>
-              <div className="flex items-end">
-                <button
-                  type="button"
-                  onClick={generateSlug}
-                  className="p-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
-                >
-                  Generate Slug
-                </button>
-              </div>
+            <div>
+              <label htmlFor="slug" className="block mb-1 font-medium">
+                Slug (auto-generated from title)
+              </label>
+              <input
+                type="text"
+                id="slug"
+                name="slug"
+                value={formData.slug}
+                readOnly
+                className="w-full p-2 border border-gray-300 rounded bg-gray-50"
+              />
             </div>
 
             <div>
@@ -625,15 +631,10 @@ export default function EditBlogPage({ params }: { params: { id: string } }) {
               disabled={saving}
               className="px-4 py-2 bg-blue-500 text-white rounded flex items-center"
             >
-              {saving ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Saving...
-                </>
-              ) : (
+              {saving ? 'Saving...' : (
                 <>
                   <FaSave className="mr-2" />
-                  Save Changes
+                  Save Post
                 </>
               )}
             </button>

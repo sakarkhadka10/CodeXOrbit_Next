@@ -26,63 +26,7 @@ interface Category {
   name: string;
 }
 
-// Define Summernote context interface
-interface SummernoteContext {
-  invoke: (command: string, html: string) => void;
-}
-
-// Define jQuery types
-interface JQueryStatic {
-  (selector: string | Element | Document | EventTarget): JQuery;
-  summernote: {
-    ui: {
-      button: (options: { contents: string; tooltip: string; className: string; click: () => void }) => { render: () => HTMLElement };
-    };
-  };
-}
-
-interface SummernoteOptions {
-  height?: number;
-  placeholder?: string;
-  styleTags?: string[];
-  fontNames?: string[];
-  fontNamesIgnoreCheck?: string[];
-  callbacks?: {
-    onInit?: () => void;
-    onChange?: (contents: string) => void;
-    onKeydown?: (e: KeyboardEvent) => boolean | void;
-  };
-  buttons?: Record<string, (context: SummernoteContext) => HTMLElement>;
-  toolbar?: Array<[string, string[]]>;
-}
-
-interface JQuery {
-  summernote(options: SummernoteOptions): JQuery;
-  summernote(command: string, html?: string): JQuery;
-  each(callback: (this: HTMLElement, index: number, element: HTMLElement) => void): JQuery;
-  find(selector: string): JQuery;
-  closest(selector: string): JQuery;
-  append(element: HTMLElement): JQuery;
-  addClass(className: string): JQuery;
-  on<K extends keyof HTMLElementEventMap>(event: K, selector: string, handler: (this: HTMLElement, event: HTMLElementEventMap[K]) => void): JQuery;
-  on<K extends keyof HTMLElementEventMap>(event: K, handler: (this: HTMLElement, event: HTMLElementEventMap[K]) => void): JQuery;
-  on(event: string, selector: string, handler: (this: HTMLElement, event: Event) => void): JQuery;
-  on(event: string, handler: (this: HTMLElement, event: Event) => void): JQuery;
-  off(event: string, selector: string): JQuery;
-  off(event: string): JQuery;
-  get(): HTMLElement[];
-  get(index: number): HTMLElement;
-  length: number;
-  [index: number]: HTMLElement;
-}
-
-// Add global type declarations for jQuery and Summernote
-declare global {
-  interface Window {
-    jQuery: JQueryStatic;
-    $: JQueryStatic;
-  }
-}
+// jQuery types are now defined in src/types/jquery.d.ts
 
 export default function CreateBlogPage() {
   const router = useRouter()
@@ -229,7 +173,9 @@ export default function CreateBlogPage() {
   // Initialize Summernote editor with improved configuration
   useEffect(() => {
     if (typeof window !== 'undefined' && editorLoaded && editorRef.current) {
-      const $ = window.jQuery
+      // Use type assertion to tell TypeScript that jQuery is available on window
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const $ = (window as any).jQuery
 
       if ($ && $.summernote) {
         // Function to add exit buttons to all code blocks
@@ -451,7 +397,8 @@ export default function CreateBlogPage() {
     const currentEditorRef = editorRef.current;
 
     return () => {
-      if (typeof window !== 'undefined' && window.jQuery) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if (typeof window !== 'undefined' && (window as any).jQuery) {
         try {
           // Find and disconnect any mutation observers
           // This is a workaround since we can't directly access the observer variable
@@ -462,12 +409,15 @@ export default function CreateBlogPage() {
           }
 
           // Remove the global event listeners
-          window.jQuery(document).off('keydown', '.note-editable pre');
-          window.jQuery(document).off('click', '.code-exit-button');
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (window as any).jQuery(document).off('keydown', '.note-editable pre');
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (window as any).jQuery(document).off('click', '.code-exit-button');
 
           // Use the stored reference
           if (currentEditorRef) {
-            window.jQuery(currentEditorRef).summernote('destroy');
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (window as any).jQuery(currentEditorRef).summernote('destroy');
           }
         } catch (e) {
           console.error('Error destroying Summernote:', e);
