@@ -31,11 +31,56 @@ interface SummernoteContext {
   invoke: (command: string, html: string) => void;
 }
 
+// Define jQuery types
+interface JQueryStatic {
+  (selector: string | Element | Document | EventTarget): JQuery;
+  summernote: {
+    ui: {
+      button: (options: { contents: string; tooltip: string; className: string; click: () => void }) => { render: () => HTMLElement };
+    };
+  };
+}
+
+interface SummernoteOptions {
+  height?: number;
+  placeholder?: string;
+  styleTags?: string[];
+  fontNames?: string[];
+  fontNamesIgnoreCheck?: string[];
+  callbacks?: {
+    onInit?: () => void;
+    onChange?: (contents: string) => void;
+    onKeydown?: (e: KeyboardEvent) => boolean | void;
+  };
+  buttons?: Record<string, (context: SummernoteContext) => HTMLElement>;
+  toolbar?: Array<[string, string[]]>;
+}
+
+interface JQuery {
+  summernote(options: SummernoteOptions): JQuery;
+  summernote(command: string, html?: string): JQuery;
+  each(callback: (this: HTMLElement, index: number, element: HTMLElement) => void): JQuery;
+  find(selector: string): JQuery;
+  closest(selector: string): JQuery;
+  append(element: HTMLElement): JQuery;
+  addClass(className: string): JQuery;
+  on<K extends keyof HTMLElementEventMap>(event: K, selector: string, handler: (this: HTMLElement, event: HTMLElementEventMap[K]) => void): JQuery;
+  on<K extends keyof HTMLElementEventMap>(event: K, handler: (this: HTMLElement, event: HTMLElementEventMap[K]) => void): JQuery;
+  on(event: string, selector: string, handler: (this: HTMLElement, event: Event) => void): JQuery;
+  on(event: string, handler: (this: HTMLElement, event: Event) => void): JQuery;
+  off(event: string, selector: string): JQuery;
+  off(event: string): JQuery;
+  get(): HTMLElement[];
+  get(index: number): HTMLElement;
+  length: number;
+  [index: number]: HTMLElement;
+}
+
 // Add global type declarations for jQuery and Summernote
 declare global {
   interface Window {
-    jQuery: any;
-    $: any;
+    jQuery: JQueryStatic;
+    $: JQueryStatic;
   }
 }
 
@@ -205,7 +250,7 @@ export default function CreateBlogPage() {
         };
 
         // Function to handle exit button click
-        const handleExitButtonClick = (e: MouseEvent) => {
+        const handleExitButtonClick = (e: Event) => {
           e.preventDefault();
           e.stopPropagation();
 
@@ -236,8 +281,10 @@ export default function CreateBlogPage() {
         $(document).on('click', '.code-exit-button', handleExitButtonClick);
 
         // Add a global event listener for Escape key in code blocks
-        $(document).on('keydown', '.note-editable pre', function(this: HTMLElement, e: KeyboardEvent) {
-          if (e.key === 'Escape') {
+        $(document).on('keydown', '.note-editable pre', function(this: HTMLElement, e: Event) {
+          // Safe cast since we're handling a keydown event
+          const keyEvent = e as unknown as KeyboardEvent;
+          if (keyEvent.key === 'Escape') {
             e.preventDefault();
             e.stopPropagation();
 
@@ -307,13 +354,14 @@ export default function CreateBlogPage() {
               }))
             },
             onKeydown: function(e: KeyboardEvent) {
-              const isCodeBlock = $(e.target).closest('pre').length > 0;
+              const target = e.target as HTMLElement;
+              const isCodeBlock = $(target).closest('pre').length > 0;
 
               if (isCodeBlock && e.key === 'Enter' && !e.shiftKey) {
                 // Check if cursor is at the end of the code block
                 const selection = window.getSelection();
                 const range = selection?.getRangeAt(0);
-                const preElement = $(e.target).closest('pre')[0];
+                const preElement = $(target).closest('pre')[0];
                 const codeElement = $(preElement).find('code')[0];
 
                 // Get text content and cursor position

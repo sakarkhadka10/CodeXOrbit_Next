@@ -10,17 +10,20 @@ export async function GET(
   { params }: { params: { slug: string } }
 ) {
   try {
+    // Ensure params is awaited
+    const slug = params.slug;
+
     const category = await prisma.category.findUnique({
-      where: { slug: params.slug }
+      where: { slug }
     });
-    
+
     if (!category) {
       return NextResponse.json(
         { error: "Category not found" },
         { status: 404 }
       );
     }
-    
+
     return NextResponse.json(category);
   } catch (error) {
     console.error("Error fetching category:", error);
@@ -37,36 +40,39 @@ export async function PUT(
   { params }: { params: { slug: string } }
 ) {
   try {
+    // Ensure params is awaited
+    const slug = params.slug;
+
     const data = await request.json();
-    
+
     // If slug is being changed, check if the new slug already exists
-    if (data.slug !== params.slug) {
+    if (data.slug !== slug) {
       const existingCategory = await prisma.category.findUnique({
         where: { slug: data.slug }
       });
-      
+
       if (existingCategory) {
         return NextResponse.json(
           { error: "A category with this slug already exists" },
           { status: 400 }
         );
       }
-      
+
       // Update all blog posts that reference this category
       await prisma.blog.updateMany({
-        where: { categoryId: params.slug },
+        where: { categoryId: slug },
         data: { categoryId: data.slug }
       });
     }
-    
+
     const category = await prisma.category.update({
-      where: { slug: params.slug },
+      where: { slug },
       data: {
         name: data.name,
         slug: data.slug
       }
     });
-    
+
     return NextResponse.json(category);
   } catch (error) {
     console.error("Error updating category:", error);
@@ -83,10 +89,13 @@ export async function DELETE(
   { params }: { params: { slug: string } }
 ) {
   try {
+    // Ensure params is awaited
+    const slug = params.slug;
+
     await prisma.category.delete({
-      where: { slug: params.slug }
+      where: { slug }
     });
-    
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting category:", error);

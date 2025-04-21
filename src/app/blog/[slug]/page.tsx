@@ -23,9 +23,12 @@ type Post = {
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   try {
+    // Ensure params is awaited
+    const slug = params.slug;
+
     // Fetch from database
     const post = await prisma.blog.findUnique({
-      where: { slug: params.slug },
+      where: { slug },
       include: { category: true } // Include the related category
     });
 
@@ -45,7 +48,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     }
 
     // Fallback to local data if needed
-    const localPost = posts.find((post) => post.slug === params.slug);
+    const localPost = posts.find((post) => post.slug === slug);
     if (localPost) {
       return {
         title: `${localPost.title} | CodeX Orbit Blog`,
@@ -76,9 +79,12 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 
 export default async function BlogPost({ params }: { params: { slug: string } }) {
   try {
+    // Ensure params is awaited
+    const slug = params.slug;
+
     // Try to fetch from database first
     const dbPost = await prisma.blog.findUnique({
-      where: { slug: params.slug },
+      where: { slug },
       include: { category: true } // Include the related category
     });
 
@@ -106,7 +112,7 @@ export default async function BlogPost({ params }: { params: { slug: string } })
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
     if (apiUrl) {
       try {
-        const response = await fetch(`${apiUrl}/api/posts/${params.slug}`);
+        const response = await fetch(`${apiUrl}/api/posts/${slug}`);
         if (response.ok) {
           post = await response.json();
         }
@@ -117,7 +123,7 @@ export default async function BlogPost({ params }: { params: { slug: string } })
 
     // Fallback to local data if API fetch failed
     if (!post) {
-      post = posts.find((p) => p.slug === params.slug);
+      post = posts.find((p) => p.slug === slug);
     }
 
     if (!post) {

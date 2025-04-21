@@ -1,14 +1,24 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+// import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { FaPlus, FaEdit, FaTrash, FaEye } from 'react-icons/fa'
 import { FaList } from 'react-icons/fa6'
 
+// Define Blog type
+interface Blog {
+  id: number;
+  title: string;
+  slug: string;
+  author: string;
+  published: boolean;
+  createdAt: string;
+}
+
 export default function AdminPage() {
-  const router = useRouter()
-  const [blogs, setBlogs] = useState([])
+  // const router = useRouter()
+  const [blogs, setBlogs] = useState<Blog[]>([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('all')
 
@@ -33,12 +43,12 @@ export default function AdminPage() {
 
   const handleDelete = async (id: number) => {
     if (!confirm('Are you sure you want to delete this blog post?')) return
-    
+
     try {
       const response = await fetch(`/api/blog/${id}`, {
         method: 'DELETE',
       })
-      
+
       if (response.ok) {
         fetchBlogs()
       }
@@ -47,11 +57,11 @@ export default function AdminPage() {
     }
   }
 
-  const filteredBlogs = activeTab === 'all' 
-    ? blogs 
-    : activeTab === 'published' 
-      ? blogs.filter(blog => blog.published) 
-      : blogs.filter(blog => !blog.published)
+  const filteredBlogs: Blog[] = activeTab === 'all'
+    ? blogs
+    : activeTab === 'published'
+      ? blogs.filter((blog: Blog) => blog.published)
+      : blogs.filter((blog: Blog) => !blog.published)
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -59,12 +69,12 @@ export default function AdminPage() {
         <div className="flex justify-between items-center mb-8 mt-15">
           <h1 className="text-3xl font-bold text-gray-900">Blog Management</h1>
           <div className='flex gap-5'>
-          <Link href="/admin/categories" 
+          <Link href="/admin/categories"
           className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
             <FaList/> Manage Category
           </Link>
-          <Link 
-            href="/admin/create" 
+          <Link
+            href="/admin/create"
             className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
             >
             <FaPlus /> New Post
@@ -132,20 +142,20 @@ export default function AdminPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end gap-2">
-                          <Link 
-                            href={`/blog/${blog.slug}`} 
+                          <Link
+                            href={`/blog/${blog.slug}`}
                             className="text-indigo-600 hover:text-indigo-900"
                             target="_blank"
                           >
                             <FaEye />
                           </Link>
-                          <Link 
-                            href={`/admin/edit/${blog.id}`} 
+                          <Link
+                            href={`/admin/edit/${blog.id}`}
                             className="text-blue-600 hover:text-blue-900"
                           >
                             <FaEdit />
                           </Link>
-                          <button 
+                          <button
                             onClick={() => handleDelete(blog.id)}
                             className="text-red-600 hover:text-red-900"
                           >
@@ -163,4 +173,4 @@ export default function AdminPage() {
       </div>
     </div>
   )
-} 
+}
