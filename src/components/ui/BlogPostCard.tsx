@@ -53,13 +53,17 @@ const BlogPostCard = ({
 
             <div className="mt-auto">
               <div className="flex items-center text-sm text-gray-500 mb-4">
-                <div className="flex items-center mr-4">
+                <div className="flex items-center mr-4 capitalize">
                   <FaUser className="mr-1.5 text-amber-500" />
                   <span>{author}</span>
                 </div>
                 <div className="flex items-center">
                   <FaCalendarAlt className="mr-1.5 text-amber-500" />
-                  <span>{date}</span>
+                  {new Date(date).toLocaleDateString('en-US', {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric"
+                  })}
                 </div>
               </div>
 

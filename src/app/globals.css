@@ -5,7 +5,7 @@ h1 {
 }
 
 p {
-  @apply text-[1rem] font-normal text-gray-600 text-shadow-2xs;
+  @apply text-[1rem] font-normal text-gray-600 text-shadow-2xs py-3;
 }
 
 input {
@@ -14,6 +14,9 @@ input {
 
 h2 {
   @apply text-4xl font-bold text-gray-800 mb-4;
+}
+img {
+  @apply w-full h-auto rounded-xl;
 }
 
 h5 {
@@ -105,7 +108,7 @@ ul {
 
 /* Enhanced codeblock button styling */
 .note-btn-codeblock {
-  @apply !bg-amber-50 text-amber-600 border border-amber-200;
+  @apply !bg-amber-50 text-amber-600 border border-amber-200 p-6;
 }
 
 .note-btn-codeblock:hover {
