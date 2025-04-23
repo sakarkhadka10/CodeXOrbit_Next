@@ -340,9 +340,9 @@ export default function EditBlogPage({ params }: { params: Promise<{ id: string 
             codeblock: function(context: SummernoteContext) {
               const ui = $.summernote.ui;
               const button = ui.button({
-                contents: '<i class="fa fa-code" style="font-size: 1.2em;"></i>',
+                contents: '<i class="fa fa-code" style="font-size: 1.2em; margin-right: 4px;"></i><span style="vertical-align: middle;">Code</span>',
                 tooltip: 'Insert Code Block',
-                className: 'note-btn-codeblock',
+                className: 'note-btn-codeblock note-btn-with-text',
                 click: function() {
                   // Create a code block with visual styling in the editor
                   const codeBlock = `<pre><code>// Your code here</code></pre>`;
@@ -369,6 +369,16 @@ export default function EditBlogPage({ params }: { params: Promise<{ id: string 
         // Apply custom styling to match site theme
         $('.note-toolbar').addClass('bg-gray-50 border-b border-amber-200');
         $('.note-btn').addClass('hover:bg-amber-50 hover:text-amber-600');
+
+        // Add custom styling for the code block button
+        $('.note-btn-codeblock').css({
+          'padding': '4px 8px',
+          'display': 'flex',
+          'align-items': 'center',
+          'background-color': '#f8f9fa',
+          'border': '1px solid #dee2e6',
+          'border-radius': '4px'
+        });
         $('.note-editable').addClass('font-geist-sans text-gray-800');
       }
     }

@@ -108,11 +108,19 @@ ul {
 
 /* Enhanced codeblock button styling */
 .note-btn-codeblock {
-  @apply !bg-amber-50 text-amber-600 border border-amber-200 p-6;
+  @apply !bg-amber-50 text-amber-600 border border-amber-200 px-3 py-2 flex items-center justify-center;
+  min-width: 70px;
 }
 
 .note-btn-codeblock:hover {
   @apply !bg-amber-100 text-amber-700;
+}
+
+.note-btn-with-text span {
+  display: inline-block;
+  font-size: 14px;
+  font-weight: 500;
+  margin-left: 4px;
 }
 
 /* Ensure code blocks handle Enter key properly */
