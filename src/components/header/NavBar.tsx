@@ -1,13 +1,21 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaBars, FaMagnifyingGlass, FaXmark, FaUser } from "react-icons/fa6";
+import { FaSignInAlt, FaUserCog, FaSignOutAlt } from "react-icons/fa";
 import { siteConfig } from "@/lib/siteConfig";
+import { useAuth } from "@/contexts/AuthContext";
 
 const NavBar = () => {
   const [showMenu, setShowMenu] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
+  const { user, logout } = useAuth();
+
+  // Debug user state
+  useEffect(() => {
+    console.log('NavBar: User state changed:', user ? `${user.email} (${user.role})` : 'Not logged in');
+  }, [user]);
 
   const navitems = [
     { name: "Home", href: "/" },
@@ -16,6 +24,15 @@ const NavBar = () => {
     { name: "Blog", href: "/blog" },
     { name: "Contact", href: "/contact" },
   ];
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setShowMenu(false);
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
+  };
 
   return (
     <header className="fixed top-0 w-full bg-white text-gray-900 px-1 sm:px-4 md:px-6 lg:px-20 py-3 sm:py-4 shadow-md z-50">
@@ -53,6 +70,35 @@ const NavBar = () => {
             >
               <FaMagnifyingGlass className="text-xl" />
             </button>
+
+            {user ? (
+              <div className="flex items-center gap-3">
+                {user.role === 'ADMIN' && (
+                  <Link
+                    href="/admin"
+                    className="flex items-center gap-1 text-gray-700 hover:text-amber-500 transition-colors"
+                  >
+                    <FaUserCog className="text-lg" />
+                    <span className="text-sm font-medium">Admin</span>
+                  </Link>
+                )}
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-1 text-gray-700 hover:text-amber-500 transition-colors"
+                >
+                  <FaSignOutAlt className="text-lg" />
+                  <span className="text-sm font-medium">Logout</span>
+                </button>
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="flex items-center gap-1 text-gray-700 hover:text-amber-500 transition-colors"
+              >
+                <FaSignInAlt className="text-lg" />
+                <span className="text-sm font-medium">Login</span>
+              </Link>
+            )}
           </div>
         </nav>
       </div>
@@ -126,6 +172,39 @@ const NavBar = () => {
                 {item.name}
               </Link>
             ))}
+
+            <div className="pt-4 mt-4 border-t border-gray-200">
+              {user ? (
+                <>
+                  {user.role === 'ADMIN' && (
+                    <Link
+                      href="/admin"
+                      className="flex items-center gap-2 font-medium text-gray-700 hover:text-amber-500 transition-colors py-2 border-b border-gray-100"
+                      onClick={() => setShowMenu(false)}
+                    >
+                      <FaUserCog />
+                      Admin Dashboard
+                    </Link>
+                  )}
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 w-full text-left font-medium text-gray-700 hover:text-amber-500 transition-colors py-2 border-b border-gray-100"
+                  >
+                    <FaSignOutAlt />
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <Link
+                  href="/login"
+                  className="flex items-center gap-2 font-medium text-gray-700 hover:text-amber-500 transition-colors py-2 border-b border-gray-100"
+                  onClick={() => setShowMenu(false)}
+                >
+                  <FaSignInAlt />
+                  Login
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       </div>

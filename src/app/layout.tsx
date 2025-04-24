@@ -6,6 +6,7 @@ import Footer from "@/components/footer/Footer";
 import FastLoadingBar from "@/components/ui/FastLoadingBar";
 import { WebsiteSchema } from "@/components/seo/SchemaOrg";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -101,9 +102,11 @@ export default function RootLayout({
         <GoogleAnalytics />
         <WebsiteSchema />
         <FastLoadingBar />
-        <NavBar/>
-        {children}
-        <Footer/>
+        <AuthProvider>
+          <NavBar/>
+          {children}
+          <Footer/>
+        </AuthProvider>
       </body>
     </html>
   );

@@ -6,6 +6,17 @@ const prisma = new PrismaClient()
 // GET /api/blog - Get all blog posts
 export async function GET() {
   try {
+    console.log('Fetching blogs...');
+
+    // Check if the Blog table exists and has records
+    const blogCount = await prisma.blog.count();
+    console.log(`Found ${blogCount} blog posts in the database`);
+
+    // If no blogs exist, return an empty array
+    if (blogCount === 0) {
+      return NextResponse.json([]);
+    }
+
     const blogs = await prisma.blog.findMany({
       orderBy: {
         createdAt: 'desc'
@@ -13,21 +24,23 @@ export async function GET() {
       include: {
         category: true // Include the category information
       }
-    })
+    });
+
+    console.log('Blogs fetched successfully:', blogs.length);
 
     // Transform the blogs to include category as a field
     const transformedBlogs = blogs.map(blog => ({
       ...blog,
       category: blog.categoryId // Set category field to the categoryId (which is the slug)
-    }))
+    }));
 
-    return NextResponse.json(transformedBlogs)
+    return NextResponse.json(transformedBlogs);
   } catch (error) {
-    console.error('Error fetching blogs:', error)
+    console.error('Error fetching blogs:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch blog posts' },
+      { error: 'Failed to fetch blog posts', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
-    )
+    );
   }
 }
 

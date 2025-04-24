@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-// import { useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { FaPlus, FaEdit, FaTrash, FaEye } from 'react-icons/fa'
+import { FaPlus, FaEdit, FaTrash, FaEye, FaSignOutAlt, FaUser } from 'react-icons/fa'
 import { FaList } from 'react-icons/fa6'
+import { useAuth } from '@/contexts/AuthContext'
 
 // Define Blog type
 interface Blog {
@@ -17,19 +18,33 @@ interface Blog {
 }
 
 export default function AdminPage() {
-  // const router = useRouter()
+  const router = useRouter()
+  const { user, loading: authLoading, logout } = useAuth()
   const [blogs, setBlogs] = useState<Blog[]>([])
-  const [loading, setLoading] = useState(true)
+  const [blogsLoading, setBlogsLoading] = useState(false)
   const [activeTab, setActiveTab] = useState('all')
 
   useEffect(() => {
-    fetchBlogs()
-  }, [])
+    // Check if user is authenticated before fetching blogs
+    if (user) {
+      fetchBlogs()
+    } else if (!authLoading) {
+      // If not authenticated and not loading, redirect to login
+      console.log('Admin page: User not authenticated, redirecting to login')
+      router.push('/login')
+    }
+  }, [user, authLoading, router])
 
   const fetchBlogs = async () => {
     try {
-      setLoading(true)
-      const response = await fetch('/api/blog')
+      setBlogsLoading(true)
+      const response = await fetch('/api/blog', {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+        }
+      })
       if (response.ok) {
         const data = await response.json()
         setBlogs(data)
@@ -37,7 +52,7 @@ export default function AdminPage() {
     } catch (error) {
       console.error('Error fetching blogs:', error)
     } finally {
-      setLoading(false)
+      setBlogsLoading(false)
     }
   }
 
@@ -57,29 +72,94 @@ export default function AdminPage() {
     }
   }
 
+  const handleLogout = async () => {
+    try {
+      await logout()
+      router.push('/login')
+    } catch (error) {
+      console.error('Error logging out:', error)
+    }
+  }
+
   const filteredBlogs: Blog[] = activeTab === 'all'
     ? blogs
     : activeTab === 'published'
       ? blogs.filter((blog: Blog) => blog.published)
       : blogs.filter((blog: Blog) => !blog.published)
 
+  // If auth context is still loading, show loading state
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading admin panel...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // If user is not authenticated after loading is complete, redirect to login
+  if (!user) {
+    // We'll handle this in the useEffect, just show a loading state
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">Redirecting to login...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // If user is not an admin, show unauthorized message
+  if (user.role !== 'ADMIN') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center p-8 max-w-md bg-white rounded-lg shadow-md">
+          <div className="text-red-500 text-5xl mb-4">⚠️</div>
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Unauthorized Access</h1>
+          <p className="text-gray-600 mb-6">You don't have permission to access the admin panel.</p>
+          <button
+            onClick={handleLogout}
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="flex justify-between items-center mb-8 mt-15">
-          <h1 className="text-3xl font-bold text-gray-900">Blog Management</h1>
-          <div className='flex gap-5'>
-          <Link href="/admin/categories"
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-            <FaList/> Manage Category
-          </Link>
-          <Link
-            href="/admin/create"
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-            >
-            <FaPlus /> New Post
-          </Link>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 mt-15">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Blog Management</h1>
+            <div className="flex items-center mt-2 text-gray-600">
+              <FaUser className="mr-2" />
+              <span>Logged in as: {user?.name || user?.email}</span>
+              <button
+                onClick={handleLogout}
+                className="ml-4 text-red-600 hover:text-red-800 flex items-center"
+              >
+                <FaSignOutAlt className="mr-1" />
+                Logout
+              </button>
             </div>
+          </div>
+          <div className='flex gap-5'>
+            <Link href="/admin/categories"
+              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+              <FaList/> Manage Category
+            </Link>
+            <Link
+              href="/admin/create"
+              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <FaPlus /> New Post
+            </Link>
+          </div>
         </div>
 
         <div className="bg-white shadow-md rounded-lg overflow-hidden">
@@ -101,7 +181,7 @@ export default function AdminPage() {
             </nav>
           </div>
 
-          {loading ? (
+          {blogsLoading ? (
             <div className="p-10 text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
               <p className="mt-4 text-gray-600">Loading blog posts...</p>
