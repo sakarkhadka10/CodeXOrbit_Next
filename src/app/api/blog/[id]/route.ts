@@ -90,6 +90,27 @@ export async function PUT(
       data: updateData
     })
 
+    // Trigger sitemap regeneration
+    try {
+      // Call the regenerate-sitemaps API endpoint
+      const sitemapResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/regenerate-sitemaps`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': process.env.SITEMAP_API_KEY || 'your-secret-key'
+        }
+      });
+
+      if (sitemapResponse.ok) {
+        console.log('Sitemaps regenerated successfully after updating blog post');
+      } else {
+        console.error('Failed to regenerate sitemaps after updating blog post');
+      }
+    } catch (sitemapError) {
+      console.error('Error regenerating sitemaps:', sitemapError);
+      // Don't fail the main request if sitemap regeneration fails
+    }
+
     return NextResponse.json(blog)
   } catch (error) {
     console.error('Error updating blog:', error)
@@ -122,6 +143,27 @@ export async function DELETE(
     await prisma.blog.delete({
       where: { id }
     })
+
+    // Trigger sitemap regeneration
+    try {
+      // Call the regenerate-sitemaps API endpoint
+      const sitemapResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/regenerate-sitemaps`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': process.env.SITEMAP_API_KEY || 'your-secret-key'
+        }
+      });
+
+      if (sitemapResponse.ok) {
+        console.log('Sitemaps regenerated successfully after deleting blog post');
+      } else {
+        console.error('Failed to regenerate sitemaps after deleting blog post');
+      }
+    } catch (sitemapError) {
+      console.error('Error regenerating sitemaps:', sitemapError);
+      // Don't fail the main request if sitemap regeneration fails
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {

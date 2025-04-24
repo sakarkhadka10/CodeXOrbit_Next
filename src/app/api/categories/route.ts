@@ -51,6 +51,27 @@ export async function POST(request: NextRequest) {
       }
     });
 
+    // Trigger sitemap regeneration
+    try {
+      // Call the regenerate-sitemaps API endpoint
+      const sitemapResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/regenerate-sitemaps`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': process.env.SITEMAP_API_KEY || 'your-secret-key'
+        }
+      });
+
+      if (sitemapResponse.ok) {
+        console.log('Sitemaps regenerated successfully after creating category');
+      } else {
+        console.error('Failed to regenerate sitemaps after creating category');
+      }
+    } catch (sitemapError) {
+      console.error('Error regenerating sitemaps:', sitemapError);
+      // Don't fail the main request if sitemap regeneration fails
+    }
+
     return NextResponse.json(category, { status: 201 });
   } catch (error) {
     console.error("Error creating category:", error);

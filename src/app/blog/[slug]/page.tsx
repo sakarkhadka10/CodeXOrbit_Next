@@ -5,6 +5,8 @@ import { Metadata } from "next";
 import SideBar from "@/components/sidebar/SideBar";
 import CodeBlock from "@/components/CodeBlock";
 import BlogHeroImage from "@/components/BlogHeroImage";
+import BlogPostJsonLd from "@/components/seo/BlogPostJsonLd";
+import BreadcrumbJsonLd from "@/components/seo/BreadcrumbJsonLd";
 import { posts } from "@/data/posts";
 import { prisma } from "@/lib/prisma"; // Import the singleton prisma instance
 
@@ -33,15 +35,33 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     });
 
     if (post) {
+      // Extract tags from post if available
+      const tags = post.tags ? post.tags.split(',').map(tag => tag.trim()) : [];
+
       return {
         title: `${post.title} | CodeX Orbit Blog`,
         description: post.excerpt || '',
+        keywords: tags,
+        authors: [{ name: post.author }],
         openGraph: {
           title: post.title,
           description: post.excerpt || '',
           type: "article",
           authors: [post.author],
           publishedTime: post.createdAt.toString(),
+          modifiedTime: post.updatedAt?.toString(),
+          images: [{
+            url: post.coverImage || "/img/frontendbg.png",
+            width: 1200,
+            height: 630,
+            alt: post.title,
+          }],
+          tags,
+        },
+        twitter: {
+          card: 'summary_large_image',
+          title: post.title,
+          description: post.excerpt || '',
           images: [post.coverImage || "/img/frontendbg.png"],
         },
       };
@@ -50,15 +70,32 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     // Fallback to local data if needed
     const localPost = posts.find((post) => post.slug === slug);
     if (localPost) {
+      // Extract tags from post if available
+      const tags = localPost.category ? [localPost.category] : [];
+
       return {
         title: `${localPost.title} | CodeX Orbit Blog`,
         description: localPost.shortDescription,
+        keywords: tags,
+        authors: [{ name: localPost.author }],
         openGraph: {
           title: localPost.title,
           description: localPost.shortDescription,
           type: "article",
           authors: [localPost.author],
           publishedTime: localPost.date,
+          images: [{
+            url: localPost.coverImage,
+            width: 1200,
+            height: 630,
+            alt: localPost.title,
+          }],
+          tags,
+        },
+        twitter: {
+          card: 'summary_large_image',
+          title: localPost.title,
+          description: localPost.shortDescription,
           images: [localPost.coverImage],
         },
       };
@@ -140,8 +177,33 @@ export default async function BlogPost({ params }: { params: { slug: string } })
 
 // Helper function to render post to avoid code duplication
 function renderPost(post: Post) {
+  // Extract tags for structured data
+  const tags = typeof post.category === 'string' ? [post.category] : [];
+  const postDate = new Date(post.date).toISOString();
+
   return (
     <div className="min-h-screen bg-[#f8fafc] mt-20">
+      {/* Structured Data */}
+      <BlogPostJsonLd
+        title={post.title}
+        description={post.shortDescription}
+        publishedTime={postDate}
+        authorName={post.author}
+        images={[post.coverImage]}
+        url={`/blog/${post.slug}`}
+        categoryName={post.category}
+        tags={tags}
+      />
+
+      <BreadcrumbJsonLd
+        items={[
+          { name: 'Home', url: '/' },
+          { name: 'Blog', url: '/blog' },
+          { name: post.category, url: `/blog?category=${post.category}` },
+          { name: post.title, url: `/blog/${post.slug}` },
+        ]}
+      />
+
       {/* Breadcrumb Navigation */}
       <div className="container mx-auto px-4 py-4">
         <nav className="flex items-center text-sm text-gray-500">
