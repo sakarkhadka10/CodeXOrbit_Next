@@ -164,6 +164,42 @@ export async function POST(request: NextRequest) {
     });
 
     console.log('Created blog post:', blog);
+
+    // Notify search engines via IndexNow
+    try {
+      // Import from our utility library
+      const { scheduleIndexNowNotificationSingle } = await import('@/lib/indexnow');
+      const blogUrl = `/blog/${blog.slug}`;
+
+      // Schedule the notification to run in the background
+      // This way, we don't delay the response to the user
+      scheduleIndexNowNotificationSingle(blogUrl);
+      console.log(`Scheduled IndexNow notification for: ${blogUrl}`);
+
+      // Also trigger sitemap regeneration
+      try {
+        // Call the regenerate-sitemaps API endpoint
+        const sitemapResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/regenerate-sitemaps`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': process.env.SITEMAP_API_KEY || 'your-secret-key'
+          }
+        });
+
+        if (sitemapResponse.ok) {
+          console.log('Sitemaps regenerated successfully after creating blog post');
+        } else {
+          console.error('Failed to regenerate sitemaps after creating blog post');
+        }
+      } catch (sitemapError) {
+        console.error('Error regenerating sitemaps:', sitemapError);
+      }
+    } catch (indexNowError) {
+      console.error('Error scheduling IndexNow notification:', indexNowError);
+      // Don't fail the main request if IndexNow notification fails
+    }
+
     return NextResponse.json(blog, { status: 201 });
   } catch (error) {
     console.error('Error creating blog post:', error);

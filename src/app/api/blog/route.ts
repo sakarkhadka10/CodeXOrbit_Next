@@ -74,8 +74,18 @@ export async function POST(request: NextRequest) {
       } else {
         console.error('Failed to regenerate sitemaps after creating blog post');
       }
+
+      // Notify search engines via IndexNow
+      // Import from our utility library
+      const { scheduleIndexNowNotificationSingle } = await import('@/lib/indexnow');
+      const blogUrl = `/blog/${blog.slug}`;
+
+      // Schedule the notification to run in the background
+      // This way, we don't delay the response to the user
+      scheduleIndexNowNotificationSingle(blogUrl);
+      console.log(`Scheduled IndexNow notification for: ${blogUrl}`);
     } catch (sitemapError) {
-      console.error('Error regenerating sitemaps:', sitemapError);
+      console.error('Error regenerating sitemaps or notifying IndexNow:', sitemapError);
       // Don't fail the main request if sitemap regeneration fails
     }
 
