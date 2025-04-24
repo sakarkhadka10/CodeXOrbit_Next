@@ -29,7 +29,7 @@ export function BlogPostSchema({
   const pathname = usePathname();
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://codexorbit.com';
   const url = `${baseUrl}${pathname}`;
-  
+
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
@@ -77,13 +77,13 @@ interface WebsiteSchemaProps {
   siteUrl?: string;
 }
 
-export function WebsiteSchema({ 
+export function WebsiteSchema({
   title = 'CodeXOrbit - Programming Blog and Tutorials',
   description = 'Explore programming tutorials, coding tips, and tech insights on CodeXOrbit.',
   siteUrl,
 }: WebsiteSchemaProps) {
   const baseUrl = siteUrl || process.env.NEXT_PUBLIC_SITE_URL || 'https://codexorbit.com';
-  
+
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
@@ -115,7 +115,7 @@ interface BreadcrumbSchemaProps {
 
 export function BreadcrumbSchema({ items }: BreadcrumbSchemaProps) {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://codexorbit.com';
-  
+
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -166,9 +166,70 @@ export function FAQSchema({ questions }: FAQSchemaProps) {
   );
 }
 
+interface ContactPageSchemaProps {
+  organizationName?: string;
+  url?: string;
+  email?: string;
+  telephone?: string;
+  address?: {
+    streetAddress?: string;
+    addressLocality?: string;
+    addressRegion?: string;
+    postalCode?: string;
+    addressCountry?: string;
+  };
+}
+
+export function ContactPageSchema({
+  organizationName = 'CodeXOrbit',
+  url = 'https://codexorbit.com',
+  email = 'contact@codexorbit.com',
+  telephone = '+1 (555) 123-4567',
+  address = {
+    streetAddress: '123 Coding Street',
+    addressLocality: 'Developer City',
+    addressRegion: 'CA',
+    postalCode: '12345',
+    addressCountry: 'US',
+  },
+}: ContactPageSchemaProps) {
+  const contactSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: organizationName,
+    url: url,
+    email: email,
+    telephone: telephone,
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: address.streetAddress,
+      addressLocality: address.addressLocality,
+      addressRegion: address.addressRegion,
+      postalCode: address.postalCode,
+      addressCountry: address.addressCountry,
+    },
+    contactPoint: {
+      '@type': 'ContactPoint',
+      telephone: telephone,
+      contactType: 'customer service',
+      email: email,
+      availableLanguage: 'English',
+    },
+  };
+
+  return (
+    <Script
+      id="contact-schema"
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(contactSchema) }}
+    />
+  );
+}
+
 export default {
   BlogPostSchema,
   WebsiteSchema,
   BreadcrumbSchema,
   FAQSchema,
+  ContactPageSchema,
 };
