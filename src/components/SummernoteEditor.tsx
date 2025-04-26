@@ -113,6 +113,11 @@ const SummernoteEditorComponent = ({
         tooltip: false,
         // Set container to body to avoid positioning issues
         container: document.body,
+        // Disable adding classes to pasted content
+        styleTags: ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'pre'],
+        // Configure callbacks
+        styleWithSpan: false,
+        disableDragAndDrop: false,
         popover: {
           image: [
             ['image', ['resizeFull', 'resizeHalf', 'resizeQuarter', 'resizeNone']],
@@ -131,7 +136,36 @@ const SummernoteEditorComponent = ({
         ],
         callbacks: {
           onChange: function(contents: string) {
-            onChange(contents);
+            // Clean any class attributes from the content
+            const cleanContent = contents.replace(/ class="[^"]*"/g, '');
+
+            // Only update if content actually changed to avoid loops
+            if (cleanContent !== contents) {
+              // Use setTimeout to avoid recursive onChange calls
+              setTimeout(() => {
+                $(editorRef.current).summernote('code', cleanContent);
+              }, 0);
+
+              // Pass the cleaned content to the parent component
+              onChange(cleanContent);
+            } else {
+              onChange(contents);
+            }
+          },
+
+          onPaste: function(e: any) {
+            // Get plain text from clipboard
+            const bufferText = ((e.originalEvent as ClipboardEvent).clipboardData || (window as any).clipboardData).getData('Text');
+
+            // Clean the text and insert it as plain text
+            const cleanText = bufferText.replace(/<[^>]*>/g, '');
+
+            // Let Summernote handle the paste but clean it afterward
+            setTimeout(() => {
+              const content = $(editorRef.current).summernote('code');
+              const cleanContent = content.replace(/ class="[^"]*"/g, '');
+              $(editorRef.current).summernote('code', cleanContent);
+            }, 0);
           },
           onInit: function() {
             console.log('Summernote initialized successfully');
@@ -154,6 +188,11 @@ const SummernoteEditorComponent = ({
             $('.note-toolbar').css('display', 'block');
             $('.note-toolbar').css('opacity', '1');
             $('.note-toolbar').css('visibility', 'visible');
+
+            // Clean up any existing classes in the editor content
+            const content = $(editorRef.current).summernote('code');
+            const cleanContent = content.replace(/ class="[^"]*"/g, '');
+            $(editorRef.current).summernote('code', cleanContent);
 
             // Add edit buttons to existing code blocks
             $('.note-editable pre').each(function() {
@@ -337,7 +376,7 @@ const SummernoteEditorComponent = ({
   };
 
   return (
-    <div className="summernote-editor-container">
+    <div className="summernote-editor-container" onClick={(e) => e.stopPropagation()}>
       {/* We'll load scripts manually in useEffect instead of using Script components */}
 
       {/* Summernote Editor Container */}

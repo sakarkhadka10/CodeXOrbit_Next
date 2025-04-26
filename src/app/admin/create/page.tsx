@@ -103,6 +103,8 @@ export default function CreateBlogPage() {
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    e.preventDefault(); // Prevent default behavior
+
     const { name, value, type } = e.target
     const checked = (e.target as HTMLInputElement).checked
 
@@ -137,7 +139,7 @@ export default function CreateBlogPage() {
         <h1 className="text-2xl font-bold ml-auto">Create New Blog Post</h1>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-white p-6 border border-gray-200 rounded">
+      <form onSubmit={handleSubmit} className="bg-white p-6 border border-gray-200 rounded" onClick={(e) => e.stopPropagation()}>
         <div className="grid grid-cols-1 gap-4 mb-6">
           <div>
             <label htmlFor="title" className="block mb-1 font-medium">
@@ -149,6 +151,7 @@ export default function CreateBlogPage() {
               name="title"
               value={formData.title}
               onChange={handleChange}
+              onFocus={(e) => e.stopPropagation()}
               className="w-full p-2 border border-gray-300 rounded"
               required
             />
@@ -178,6 +181,7 @@ export default function CreateBlogPage() {
               name="author"
               value={formData.author}
               onChange={handleChange}
+              onFocus={(e) => e.stopPropagation()}
               className="w-full p-2 border border-gray-300 rounded"
             />
           </div>
@@ -191,6 +195,7 @@ export default function CreateBlogPage() {
               name="category"
               value={formData.category}
               onChange={handleChange}
+              onFocus={(e) => e.stopPropagation()}
               className="w-full p-2 border border-gray-300 rounded"
             >
               <option value="">Select a category</option>
@@ -211,11 +216,13 @@ export default function CreateBlogPage() {
               name="shortDescription"
               value={formData.shortDescription}
               onChange={(e) => {
+                e.stopPropagation(); // Stop event propagation
                 // Limit to 100 characters
                 if (e.target.value.length <= 100) {
                   handleChange(e);
                 }
               }}
+              onFocus={(e) => e.stopPropagation()}
               maxLength={100}
               rows={3}
               className="w-full p-2 border border-gray-300 rounded"
@@ -232,12 +239,14 @@ export default function CreateBlogPage() {
               Content
             </label>
             <div>
-              <SummernoteEditor
-                value={formData.content}
-                onChange={(content: string) => setFormData(prev => ({ ...prev, content }))}
-                height={500}
-                placeholder="Write your content here..."
-              />
+              <div onClick={(e) => e.stopPropagation()}>
+                <SummernoteEditor
+                  value={formData.content}
+                  onChange={(content: string) => setFormData(prev => ({ ...prev, content }))}
+                  height={500}
+                  placeholder="Write your content here..."
+                />
+              </div>
             </div>
           </div>
 
@@ -251,6 +260,7 @@ export default function CreateBlogPage() {
               name="coverImage"
               value={formData.coverImage}
               onChange={handleChange}
+              onFocus={(e) => e.stopPropagation()}
               placeholder="https://example.com/image.jpg"
               className="w-full p-2 border border-gray-300 rounded"
             />
@@ -281,6 +291,7 @@ export default function CreateBlogPage() {
               name="tags"
               value={formData.tags}
               onChange={handleChange}
+              onFocus={(e) => e.stopPropagation()}
               className="w-full p-2 border border-gray-300 rounded"
             />
           </div>
@@ -292,6 +303,8 @@ export default function CreateBlogPage() {
               name="published"
               checked={formData.published}
               onChange={handleChange}
+              onFocus={(e) => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
               className="mr-2"
             />
             <label htmlFor="published">
