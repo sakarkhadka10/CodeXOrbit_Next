@@ -1,11 +1,17 @@
 'use client'
 
-import { useState, useRef, useEffect, KeyboardEvent } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { FaArrowLeft, FaSave } from 'react-icons/fa'
-import Script from 'next/script'
 import ImagePreview from '@/components/ImagePreview'
+import dynamic from 'next/dynamic'
+
+// Import SummernoteEditor with dynamic import to avoid SSR issues
+const SummernoteEditor = dynamic(() => import('@/components/SummernoteEditor'), {
+  ssr: false,
+  loading: () => <div className="border border-gray-300 rounded p-4 min-h-[300px]">Loading editor...</div>
+})
 
 // Define proper types for your form data
 interface FormData {
@@ -26,13 +32,9 @@ interface Category {
   name: string;
 }
 
-// jQuery types are now defined in src/types/jquery.d.ts
-
 export default function CreateBlogPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
-  const [editorLoaded, setEditorLoaded] = useState(false)
-  const editorRef = useRef<HTMLDivElement>(null)
   const [categories, setCategories] = useState<Category[]>([])
   const [formData, setFormData] = useState<FormData>({
     title: '',
@@ -63,378 +65,7 @@ export default function CreateBlogPage() {
     fetchCategories()
   }, [])
 
-  // Load Summernote CSS with default styling
-  useEffect(() => {
-    const link = document.createElement('link')
-    link.rel = 'stylesheet'
-    link.href = 'https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css'
-    document.head.appendChild(link)
-
-    return () => {
-      if (document.head.contains(link)) {
-        document.head.removeChild(link)
-      }
-    }
-  }, [])
-
-  // Add custom styles for code blocks in the admin editor
-  useEffect(() => {
-    const style = document.createElement('style');
-    style.innerHTML = `
-      /* Basic code block styling */
-      .note-editable pre {
-        background-color: #1e1e1e;
-        color: #e6e6e6;
-        border-radius: 6px;
-        padding: 40px 12px 12px 12px; /* Extra padding on top for the header */
-        margin: 15px 0;
-        position: relative;
-        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-        font-size: 14px;
-        line-height: 1.5;
-        overflow-x: auto;
-      }
-
-      /* Code content */
-      .note-editable pre code {
-        display: block;
-        color: #e6e6e6;
-      }
-
-      /* Header bar with Mac-style UI */
-      .note-editable pre:before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 28px;
-        background-color: #2a2a2a;
-        border-bottom: 1px solid #444;
-        border-top-left-radius: 6px;
-        border-top-right-radius: 6px;
-      }
-
-      /* Red circle */
-      .note-editable pre:after {
-        content: '';
-        position: absolute;
-        top: 9px;
-        left: 10px;
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        background-color: #ff5f56;
-        box-shadow: 22px 0 0 #ffbd2e, 44px 0 0 #27c93f; /* Yellow and green circles */
-        z-index: 1;
-      }
-
-      /* Language indicator */
-      .note-editable pre code:before {
-        content: 'CODE';
-        position: absolute;
-        top: 0;
-        right: 0;
-        padding: 6px 12px;
-        font-size: 10px;
-        color: #999;
-        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-        text-transform: uppercase;
-        z-index: 2;
-      }
-
-      /* Exit button for code blocks */
-      .code-exit-button {
-        position: absolute;
-        top: 4px;
-        right: 60px;
-        background-color: #444;
-        color: #fff;
-        border: none;
-        border-radius: 3px;
-        padding: 2px 8px;
-        font-size: 10px;
-        cursor: pointer;
-        z-index: 3;
-        transition: background-color 0.2s;
-      }
-
-      .code-exit-button:hover {
-        background-color: #666;
-      }
-    `;
-    document.head.appendChild(style);
-
-    return () => {
-      document.head.removeChild(style);
-    };
-  }, []);
-
-  // Initialize Summernote editor with improved configuration
-  useEffect(() => {
-    if (typeof window !== 'undefined' && editorLoaded && editorRef.current) {
-      // Use type assertion to tell TypeScript that jQuery is available on window
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const $ = (window as any).jQuery
-
-      if ($ && $.summernote) {
-        // Function to add exit buttons to all code blocks
-        const addExitButtonsToCodeBlocks = () => {
-          $('.note-editable pre').each(function(this: HTMLElement) {
-            // Check if this pre element already has an exit button
-            if ($(this).find('.code-exit-button').length === 0) {
-              // Create the exit button
-              const exitButton = document.createElement('button');
-              exitButton.className = 'code-exit-button';
-              exitButton.textContent = 'Exit';
-              exitButton.setAttribute('type', 'button');
-
-              // Add the exit button to the pre element
-              $(this).append(exitButton);
-            }
-          });
-        };
-
-        // Function to handle exit button click
-        const handleExitButtonClick = (e: Event) => {
-          e.preventDefault();
-          e.stopPropagation();
-
-          const target = e.target as HTMLElement;
-          const preElement = $(target).closest('pre')[0];
-
-          if (preElement) {
-            // Create a new paragraph after the pre element
-            const newParagraph = document.createElement('p');
-            newParagraph.innerHTML = '<br>';
-
-            // Insert the new paragraph after the pre element
-            if (preElement.parentNode) {
-              preElement.parentNode.insertBefore(newParagraph, preElement.nextSibling);
-            }
-
-            // Move cursor to the new paragraph
-            const range = document.createRange();
-            const sel = window.getSelection();
-            range.setStart(newParagraph, 0);
-            range.collapse(true);
-            sel?.removeAllRanges();
-            sel?.addRange(range);
-          }
-        };
-
-        // Add a global event listener for exit button clicks
-        $(document).on('click', '.code-exit-button', handleExitButtonClick);
-
-        // Add a global event listener for Escape key in code blocks
-        $(document).on('keydown', '.note-editable pre', function(this: HTMLElement, e: Event) {
-          // Safe cast since we're handling a keydown event
-          const keyEvent = e as unknown as KeyboardEvent;
-          if (keyEvent.key === 'Escape') {
-            e.preventDefault();
-            e.stopPropagation();
-
-            const preElement = $(this).closest('pre')[0];
-            if (preElement) {
-              // If there's no next sibling, create a paragraph
-              if (!preElement.nextSibling) {
-                const p = document.createElement('p');
-                p.innerHTML = '<br>';
-                preElement.parentNode?.insertBefore(p, preElement.nextSibling);
-              }
-
-              // Set cursor after the code block
-              const range = document.createRange();
-              const sel = window.getSelection();
-              range.setStartAfter(preElement);
-              range.collapse(true);
-              sel?.removeAllRanges();
-              sel?.addRange(range);
-            }
-            return false;
-          }
-        });
-
-        // Create a MutationObserver to watch for new code blocks
-        const observer = new MutationObserver(() => {
-          // Simply call addExitButtonsToCodeBlocks whenever the DOM changes
-          addExitButtonsToCodeBlocks();
-        });
-
-        // Initial call to add exit buttons to any existing code blocks
-        addExitButtonsToCodeBlocks();
-
-        // Initialize the observer immediately
-        const editable = $('.note-editable')[0];
-        if (editable) {
-          observer.observe(editable, {
-            childList: true,
-            subtree: true
-          });
-        }
-
-        $(editorRef.current).summernote({
-          height: 500,
-          placeholder: 'Write your content here...',
-          styleTags: ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote'],
-          fontNames: ['Arial', 'Arial Black', 'Comic Sans MS', 'Courier New', 'Geist', 'Geist Mono'],
-          fontNamesIgnoreCheck: ['Geist', 'Geist Mono'],
-          callbacks: {
-            onInit: function() {
-              // Initialize exit buttons for any existing code blocks
-              addExitButtonsToCodeBlocks();
-
-              // Re-initialize the observer now that the editor is fully loaded
-              const editable = $('.note-editable')[0];
-              if (editable && observer) {
-                observer.observe(editable, {
-                  childList: true,
-                  subtree: true
-                });
-              }
-            },
-            onChange: function(contents: string) {
-              setFormData(prev => ({
-                ...prev,
-                content: contents
-              }))
-            },
-            onKeydown: function(e: KeyboardEvent) {
-              const target = e.target as HTMLElement;
-              const isCodeBlock = $(target).closest('pre').length > 0;
-
-              if (isCodeBlock && e.key === 'Enter' && !e.shiftKey) {
-                // Check if cursor is at the end of the code block
-                const selection = window.getSelection();
-                const range = selection?.getRangeAt(0);
-                const preElement = $(target).closest('pre')[0];
-                const codeElement = $(preElement).find('code')[0];
-
-                // Get text content and cursor position
-                const codeText = codeElement.textContent || '';
-                const cursorPosition = range?.startOffset || 0;
-
-                // If cursor is at the end of the code block or the code block is empty
-                if (cursorPosition >= codeText.length || codeText.trim() === '') {
-                  e.preventDefault();
-
-                  // Insert a new paragraph after the pre element
-                  const newParagraph = document.createElement('p');
-                  newParagraph.innerHTML = '<br>';
-
-                  // Insert the new paragraph after the pre element
-                  if (preElement.parentNode) {
-                    preElement.parentNode.insertBefore(newParagraph, preElement.nextSibling);
-                  }
-
-                  // Move cursor to the new paragraph
-                  const newRange = document.createRange();
-                  newRange.setStart(newParagraph, 0);
-                  newRange.collapse(true);
-
-                  selection?.removeAllRanges();
-                  selection?.addRange(newRange);
-
-                  return false;
-                }
-
-                // If not at the end, allow normal Enter behavior to add a new line in the code block
-              }
-            }
-          },
-          // Enhanced code block button
-          buttons: {
-            codeblock: function(context: SummernoteContext) {
-              const ui = $.summernote.ui;
-              const button = ui.button({
-                contents: '<i class="fa fa-code" style="font-size: 1.2em; margin-right: 4px;"></i><span style="vertical-align: middle;">Code</span>',
-                tooltip: 'Insert Code Block',
-                className: 'note-btn-codeblock note-btn-with-text',
-                click: function() {
-                  // Create a code block with visual styling in the editor
-                  const codeBlock = `<pre><code>// Your code here</code></pre>`;
-                  context.invoke('editor.pasteHTML', codeBlock);
-
-                  // Focus inside the code block
-                  setTimeout(() => {
-                    const codeElements = document.querySelectorAll('.note-editable pre code');
-                    if (codeElements.length > 0) {
-                      const lastCodeElement = codeElements[codeElements.length - 1];
-                      const range = document.createRange();
-                      const sel = window.getSelection();
-                      range.setStart(lastCodeElement, 0);
-                      range.collapse(true);
-                      sel?.removeAllRanges();
-                      sel?.addRange(range);
-                    }
-                  }, 0);
-                }
-              });
-              return button.render();
-            }
-          },
-          // Enhanced toolbar with better organization
-          toolbar: [
-            ['style', ['style']],
-            ['font', ['bold', 'underline', 'clear', 'strikethrough', 'superscript', 'subscript']],
-            ['fontname', ['fontname']],
-            ['color', ['color']],
-            ['para', ['ul', 'ol', 'paragraph']],
-            ['table', ['table']],
-            ['insert', ['link', 'picture', 'video', 'codeblock']],
-            ['view', ['fullscreen', 'codeview', 'help']]
-          ]
-        });
-
-        // Apply custom styling to match site theme
-        $('.note-toolbar').addClass('bg-gray-50 border-b border-amber-200');
-        $('.note-btn').addClass('hover:bg-amber-50 hover:text-amber-600');
-
-        // Add custom styling for the code block button
-        $('.note-btn-codeblock').css({
-          'padding': '4px 8px',
-          'display': 'flex',
-          'align-items': 'center',
-          'background-color': '#f8f9fa',
-          'border': '1px solid #dee2e6',
-          'border-radius': '4px'
-        });
-        $('.note-editable').addClass('font-geist-sans text-gray-800');
-      }
-    }
-
-    // Store references for cleanup
-    const currentEditorRef = editorRef.current;
-
-    return () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      if (typeof window !== 'undefined' && (window as any).jQuery) {
-        try {
-          // Find and disconnect any mutation observers
-          // This is a workaround since we can't directly access the observer variable
-          const noteEditable = document.querySelector('.note-editable');
-          if (noteEditable) {
-            // We can't directly access MutationObservers, so we'll just remove
-            // the elements they're observing which effectively stops them
-          }
-
-          // Remove the global event listeners
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (window as any).jQuery(document).off('keydown', '.note-editable pre');
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (window as any).jQuery(document).off('click', '.code-exit-button');
-
-          // Use the stored reference
-          if (currentEditorRef) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (window as any).jQuery(currentEditorRef).summernote('destroy');
-          }
-        } catch (e) {
-          console.error('Error destroying Summernote:', e);
-        }
-      }
-    }
-  }, [editorLoaded])
+  // No special initialization needed - using SummernoteEditor component
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -600,7 +231,12 @@ export default function CreateBlogPage() {
             <label className="block mb-1 font-medium">
               Content
             </label>
-            <div ref={editorRef} className="border border-gray-300 rounded"></div>
+            <SummernoteEditor
+              value={formData.content}
+              onChange={(content) => setFormData(prev => ({ ...prev, content }))}
+              height={400}
+              placeholder="Write your content here..."
+            />
           </div>
 
           <div>
@@ -677,32 +313,6 @@ export default function CreateBlogPage() {
           </button>
         </div>
       </form>
-
-      <Script
-        src="https://code.jquery.com/jquery-3.6.0.min.js"
-        strategy="beforeInteractive"
-        onLoad={() => console.log('jQuery loaded')}
-      />
-      <Script
-        src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"
-        strategy="afterInteractive"
-        onLoad={() => setEditorLoaded(true)}
-      />
     </div>
   )
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
