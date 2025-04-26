@@ -20,6 +20,7 @@
     "submit-to-indexnow": "node scripts/submit-all-to-indexnow.js"
   },
   "dependencies": {
+    "@monaco-editor/react": "^4.7.0",
     "@next/bundle-analyzer": "^15.3.1",
     "@prisma/client": "^5.10.2",
     "@types/prismjs": "^1.26.5",

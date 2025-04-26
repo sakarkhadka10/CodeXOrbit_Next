@@ -231,12 +231,14 @@ export default function CreateBlogPage() {
             <label className="block mb-1 font-medium">
               Content
             </label>
-            <SummernoteEditor
-              value={formData.content}
-              onChange={(content) => setFormData(prev => ({ ...prev, content }))}
-              height={400}
-              placeholder="Write your content here..."
-            />
+            <div>
+              <SummernoteEditor
+                value={formData.content}
+                onChange={(content: string) => setFormData(prev => ({ ...prev, content }))}
+                height={500}
+                placeholder="Write your content here..."
+              />
+            </div>
           </div>
 
           <div>
