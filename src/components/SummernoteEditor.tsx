@@ -113,11 +113,15 @@ const SummernoteEditorComponent = ({
         tooltip: false,
         // Set container to body to avoid positioning issues
         container: document.body,
-        // Disable adding classes to pasted content
-        styleTags: ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'pre'],
-        // Configure callbacks
+        // Disable adding spans and classes
         styleWithSpan: false,
+        disableGrammar: true,
+        spellCheck: false,
         disableDragAndDrop: false,
+        // Define custom styles to avoid automatic class insertion
+        styleTags: [
+          'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'pre', 'blockquote'
+        ],
         popover: {
           image: [
             ['image', ['resizeFull', 'resizeHalf', 'resizeQuarter', 'resizeNone']],
@@ -136,8 +140,17 @@ const SummernoteEditorComponent = ({
         ],
         callbacks: {
           onChange: function(contents: string) {
+            // Stop any ongoing events to prevent form submission
+            if (window.event) {
+              window.event.stopPropagation();
+            }
+
             // Clean any class attributes from the content
-            const cleanContent = contents.replace(/ class="[^"]*"/g, '');
+            const cleanContent = contents
+              .replace(/ class="[^"]*"/g, '')
+              .replace(/ style="[^"]*"/g, '')
+              .replace(/ id="[^"]*"/g, '')
+              .replace(/<span[^>]*>(.*?)<\/span>/g, '$1');
 
             // Only update if content actually changed to avoid loops
             if (cleanContent !== contents) {
@@ -151,21 +164,56 @@ const SummernoteEditorComponent = ({
             } else {
               onChange(contents);
             }
+
+            // Prevent the event from bubbling up to the form
+            return false;
           },
 
           onPaste: function(e: any) {
-            // Get plain text from clipboard
-            const bufferText = ((e.originalEvent as ClipboardEvent).clipboardData || (window as any).clipboardData).getData('Text');
+            // Prevent the default paste behavior
+            e.preventDefault();
 
-            // Clean the text and insert it as plain text
-            const cleanText = bufferText.replace(/<[^>]*>/g, '');
+            try {
+              // Get clipboard data
+              const clipboardData = (e.originalEvent as ClipboardEvent).clipboardData || (window as any).clipboardData;
 
-            // Let Summernote handle the paste but clean it afterward
-            setTimeout(() => {
-              const content = $(editorRef.current).summernote('code');
-              const cleanContent = content.replace(/ class="[^"]*"/g, '');
-              $(editorRef.current).summernote('code', cleanContent);
-            }, 0);
+              // Try to get HTML content first
+              let content = clipboardData.getData('text/html');
+
+              if (content) {
+                // Strip all classes, styles, and unnecessary attributes from HTML
+                content = content
+                  .replace(/ class="[^"]*"/g, '')
+                  .replace(/ style="[^"]*"/g, '')
+                  .replace(/ id="[^"]*"/g, '')
+                  .replace(/<span[^>]*>(.*?)<\/span>/g, '$1')
+                  .replace(/<div[^>]*>(.*?)<\/div>/g, '<p>$1</p>')
+                  .replace(/<o:p[^>]*>(.*?)<\/o:p>/g, '$1')
+                  .replace(/<!\-\-\[if[^>]*>(.*?)<!\[endif\]\-\->/g, '');
+
+                // Insert the cleaned HTML
+                $(editorRef.current).summernote('pasteHTML', content);
+              } else {
+                // Fallback to plain text if HTML is not available
+                const text = clipboardData.getData('text/plain');
+                if (text) {
+                  $(editorRef.current).summernote('insertText', text);
+                }
+              }
+
+              // Clean up any remaining classes after paste
+              setTimeout(() => {
+                const editorContent = $(editorRef.current).summernote('code');
+                const cleanContent = editorContent
+                  .replace(/ class="[^"]*"/g, '')
+                  .replace(/ style="[^"]*"/g, '');
+                $(editorRef.current).summernote('code', cleanContent);
+              }, 10);
+            } catch (error) {
+              console.error('Error handling paste:', error);
+              // Fallback to default paste behavior if our custom handling fails
+              return true;
+            }
           },
           onInit: function() {
             console.log('Summernote initialized successfully');
@@ -175,6 +223,18 @@ const SummernoteEditorComponent = ({
             if (value) {
               $(editorRef.current).summernote('code', value);
             }
+
+            // Add event handlers to prevent event bubbling
+            $('.note-editable').on('keydown', function(e) {
+              e.stopPropagation();
+            });
+
+            // Prevent form submission on Enter key
+            $('.note-editable').on('keypress', function(e) {
+              if (e.which === 13) {
+                e.stopPropagation();
+              }
+            });
 
             // Apply custom styling
             $('.note-toolbar').addClass('bg-gray-50 border-b border-gray-200');
@@ -376,7 +436,11 @@ const SummernoteEditorComponent = ({
   };
 
   return (
-    <div className="summernote-editor-container" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="summernote-editor-container"
+      onClick={(e) => e.stopPropagation()}
+      onKeyDown={(e) => e.stopPropagation()}
+    >
       {/* We'll load scripts manually in useEffect instead of using Script components */}
 
       {/* Summernote Editor Container */}

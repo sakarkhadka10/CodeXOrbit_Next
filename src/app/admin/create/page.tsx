@@ -103,11 +103,18 @@ export default function CreateBlogPage() {
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    e.preventDefault(); // Prevent default behavior
+    // Stop event propagation to prevent redirection
+    e.stopPropagation();
+
+    // Prevent default behavior for certain elements
+    if (e.target instanceof HTMLInputElement && e.target.type !== 'checkbox') {
+      e.preventDefault();
+    }
 
     const { name, value, type } = e.target
     const checked = (e.target as HTMLInputElement).checked
 
+    // Update form data
     setFormData(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value
@@ -139,7 +146,18 @@ export default function CreateBlogPage() {
         <h1 className="text-2xl font-bold ml-auto">Create New Blog Post</h1>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-white p-6 border border-gray-200 rounded" onClick={(e) => e.stopPropagation()}>
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white p-6 border border-gray-200 rounded"
+        onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => {
+          // Prevent form submission on Enter key
+          if (e.key === 'Enter' && e.target instanceof HTMLInputElement) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        }}
+      >
         <div className="grid grid-cols-1 gap-4 mb-6">
           <div>
             <label htmlFor="title" className="block mb-1 font-medium">
@@ -239,10 +257,17 @@ export default function CreateBlogPage() {
               Content
             </label>
             <div>
-              <div onClick={(e) => e.stopPropagation()}>
+              <div
+                onClick={(e) => e.stopPropagation()}
+                onKeyDown={(e) => e.stopPropagation()}
+                className="summernote-container"
+              >
                 <SummernoteEditor
                   value={formData.content}
-                  onChange={(content: string) => setFormData(prev => ({ ...prev, content }))}
+                  onChange={(content: string) => {
+                    // Only update content, don't affect other form fields
+                    setFormData(prev => ({ ...prev, content }));
+                  }}
                   height={500}
                   placeholder="Write your content here..."
                 />
