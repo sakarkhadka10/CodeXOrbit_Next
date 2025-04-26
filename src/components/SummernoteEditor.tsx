@@ -94,10 +94,10 @@ const SummernoteEditorComponent = ({
       $.summernote.options.buttons.codeblock = function (context) {
         return $.summernote.ui.button({
           contents: '<i class="note-icon-code"></i> Code Block',
-          tooltip: 'Insert Code Block',
+          // Remove tooltip to avoid the error
           click: function () {
-            // Insert pre and code tags for a code block
-            context.invoke('editor.pasteHTML', '<pre><code>// Your code here</code></pre>');
+            // Insert pre and code tags for a code block with an edit button
+            context.invoke('editor.pasteHTML', '<pre><button type="button" class="code-edit-btn">Exit</button><code>// Your code here</code></pre>');
           }
         }).render();
       };
@@ -109,6 +109,17 @@ const SummernoteEditorComponent = ({
         height,
         focus: true,
         lineHeight: ['1.0', '1.2', '1.4', '1.5', '1.6', '1.8', '2.0', '3.0'],
+        // Disable tooltips completely to avoid errors
+        tooltip: false,
+        // Set container to body to avoid positioning issues
+        container: document.body,
+        popover: {
+          image: [
+            ['image', ['resizeFull', 'resizeHalf', 'resizeQuarter', 'resizeNone']],
+            ['float', ['floatLeft', 'floatRight', 'floatNone']],
+            ['remove', ['removeMedia']]
+          ]
+        },
         toolbar: [
           ['style', ['style']],
           ['font', ['bold', 'underline', 'clear']],
@@ -143,6 +154,108 @@ const SummernoteEditorComponent = ({
             $('.note-toolbar').css('display', 'block');
             $('.note-toolbar').css('opacity', '1');
             $('.note-toolbar').css('visibility', 'visible');
+
+            // Add edit buttons to existing code blocks
+            $('.note-editable pre').each(function() {
+              // Only add button if it doesn't already have one
+              if ($(this).find('.code-edit-btn').length === 0) {
+                $(this).prepend('<button type="button" class="code-edit-btn">Exit</button>');
+              }
+            });
+
+            // Set up a mutation observer to add edit buttons to new code blocks
+            const editableElement = $('.note-editable')[0];
+            if (editableElement) {
+              const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                  if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                    // Check if any of the added nodes are pre elements or contain pre elements
+                    mutation.addedNodes.forEach(function(node) {
+                      if (node.nodeType === 1) { // Element node
+                        // Check if the node is a pre element
+                        if (node.nodeName === 'PRE') {
+                          if ($(node).find('.code-edit-btn').length === 0) {
+                            $(node).prepend('<button type="button" class="code-edit-btn">Exit</button>');
+                          }
+                        }
+                        // Check if the node contains pre elements
+                        const preElements = $(node).find('pre');
+                        if (preElements.length > 0) {
+                          preElements.each(function() {
+                            if ($(this).find('.code-edit-btn').length === 0) {
+                              $(this).prepend('<button type="button" class="code-edit-btn">Exit</button>');
+                            }
+                          });
+                        }
+                      }
+                    });
+                  }
+                });
+              });
+
+              // Start observing the editable area for changes
+              observer.observe(editableElement, {
+                childList: true,
+                subtree: true
+              });
+            }
+
+            // Add click handler for edit buttons on code blocks
+            $('.note-editable').off('click', '.code-edit-btn').on('click', '.code-edit-btn', function(e) {
+              e.preventDefault();
+              e.stopPropagation();
+
+              try {
+                // Find the parent pre element
+                const preElement = $(this).closest('pre')[0];
+
+                if (preElement && preElement.parentNode) {
+                  // Create a new paragraph with a non-breaking space to ensure it's selectable
+                  const newParagraph = $('<p><br></p>')[0];
+
+                  // Insert the new paragraph after the pre element
+                  preElement.parentNode.insertBefore(newParagraph, preElement.nextSibling);
+
+                  // Focus the editor
+                  $(editorRef.current).summernote('focus');
+
+                  // Use Summernote's built-in methods to set the cursor position
+                  const editor = $(editorRef.current).summernote('editor');
+
+                  // Create a range at the beginning of the new paragraph
+                  const range = document.createRange();
+                  range.setStart(newParagraph, 0);
+                  range.collapse(true);
+
+                  // Set the selection to this range
+                  const selection = window.getSelection();
+                  if (selection) {
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                  }
+
+                  // Force Summernote to update its internal state
+                  $(editorRef.current).summernote('editor.saveRange');
+
+                  // Trigger a change event to ensure Summernote updates
+                  const content = $(editorRef.current).summernote('code');
+                  onChange(content);
+
+                  // Scroll to the new position
+                  newParagraph.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+              } catch (error) {
+                console.error('Error in exit button click handler:', error);
+
+                // Fallback method if the above fails
+                try {
+                  // Insert a paragraph at the current selection
+                  $(editorRef.current).summernote('insertParagraph');
+                } catch (fallbackError) {
+                  console.error('Fallback method also failed:', fallbackError);
+                }
+              }
+            });
           }
         }
       });
@@ -375,6 +488,44 @@ const SummernoteEditorComponent = ({
 
         .note-btn.btn-codeblock:hover {
           background-color: #e2e6ea;
+        }
+
+        /* Style for code block edit button */
+        .code-edit-btn {
+          position: absolute;
+          top: 5px;
+          right: 10px;
+          background-color: #27c93f;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          padding: 4px 12px;
+          font-size: 13px;
+          font-weight: bold;
+          cursor: pointer;
+          opacity: 1;
+          transition: all 0.2s;
+          z-index: 10;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+          text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        .code-edit-btn:hover {
+          background-color: #2edc47;
+          transform: translateY(-1px);
+          box-shadow: 0 3px 6px rgba(0,0,0,0.4);
+        }
+
+        .code-edit-btn:active {
+          transform: translateY(0);
+          background-color: #25b53a;
+          box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+        /* Make sure the button is always visible */
+        .note-editable pre:hover .code-edit-btn {
+          opacity: 1;
         }
       `}</style>
     </div>
