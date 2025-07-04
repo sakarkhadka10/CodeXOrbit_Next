@@ -227,12 +227,34 @@ const SummernoteEditorComponent = ({
             // Add event handlers to prevent event bubbling
             $('.note-editable').on('keydown', function(e) {
               e.stopPropagation();
+              // Prevent Enter key from submitting the form
+              if (e.key === 'Enter') {
+                e.preventDefault();
+              }
             });
 
             // Prevent form submission on Enter key
             $('.note-editable').on('keypress', function(e) {
               if (e.which === 13) {
                 e.stopPropagation();
+                e.preventDefault();
+              }
+            });
+
+            // Prevent focus stealing
+            $('.note-editable').on('focus', function(e) {
+              e.stopPropagation();
+              // Don't let this focus event bubble up
+              e.stopImmediatePropagation();
+            });
+
+            // Add a special handler to the document to prevent focus stealing
+            $(document).on('click', function(e) {
+              // If the click is inside a form input, don't let Summernote steal focus
+              if ($(e.target).is('input, textarea, select') && !$(e.target).closest('.note-editable').length) {
+                e.stopPropagation();
+                // Prevent Summernote from getting focus
+                e.preventDefault();
               }
             });
 
@@ -438,8 +460,19 @@ const SummernoteEditorComponent = ({
   return (
     <div
       className="summernote-editor-container"
-      onClick={(e) => e.stopPropagation()}
-      onKeyDown={(e) => e.stopPropagation()}
+      onClick={(e) => {
+        e.stopPropagation();
+        e.preventDefault();
+      }}
+      onKeyDown={(e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        // Prevent Enter key from submitting the form
+        if (e.key === 'Enter') {
+          e.preventDefault();
+        }
+      }}
+      tabIndex={-1} // Make sure it doesn't get focus from tab navigation
     >
       {/* We'll load scripts manually in useEffect instead of using Script components */}
 

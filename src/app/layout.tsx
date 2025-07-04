@@ -21,10 +21,21 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: {
     default: "CodeXOrbit - Programming Blog and Tutorials",
-    template: "%s | CodeXOrbit"
+    template: "%s | CodeXOrbit",
   },
-  description: "Explore programming tutorials, coding tips, and tech insights on CodeXOrbit. Learn web development, mobile app development, and more.",
-  keywords: ["programming", "coding", "web development", "tutorials", "tech blog", "software development", "JavaScript", "React", "Next.js"],
+  description:
+    "Explore programming tutorials, coding tips, and tech insights on CodeXOrbit. Learn web development, mobile app development, and more.",
+  keywords: [
+    "programming",
+    "coding",
+    "web development",
+    "tutorials",
+    "tech blog",
+    "software development",
+    "JavaScript",
+    "React",
+    "Next.js",
+  ],
   authors: [{ name: "CodeXOrbit Team" }],
   creator: "CodeXOrbit",
   publisher: "CodeXOrbit",
@@ -33,14 +44,17 @@ export const metadata: Metadata = {
     telephone: false,
     address: false,
   },
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://codexorbit.com'),
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL || "https://codexorbit.com"
+  ),
   alternates: {
-    canonical: '/',
+    canonical: "/",
   },
   openGraph: {
     title: "CodeXOrbit - Programming Blog and Tutorials",
-    description: "Explore programming tutorials, coding tips, and tech insights on CodeXOrbit. Learn web development, mobile app development, and more.",
-    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://codexorbit.com',
+    description:
+      "Explore programming tutorials, coding tips, and tech insights on CodeXOrbit. Learn web development, mobile app development, and more.",
+    url: process.env.NEXT_PUBLIC_SITE_URL || "https://codexorbit.com",
     siteName: "CodeXOrbit",
     locale: "en_US",
     type: "website",
@@ -56,7 +70,8 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "CodeXOrbit - Programming Blog and Tutorials",
-    description: "Explore programming tutorials, coding tips, and tech insights on CodeXOrbit.",
+    description:
+      "Explore programming tutorials, coding tips, and tech insights on CodeXOrbit.",
     creator: "@codexorbit",
     images: ["/images/twitter-image.jpg"],
   },
@@ -66,14 +81,15 @@ export const metadata: Metadata = {
     googleBot: {
       index: true,
       follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
     },
   },
   verification: {
     // Add your verification tokens here
-    google: process.env.GOOGLE_SITE_VERIFICATION || 'default_verification_token',
+    google:
+      process.env.GOOGLE_SITE_VERIFICATION || "default_verification_token",
   },
 };
 
@@ -103,9 +119,9 @@ export default function RootLayout({
         <WebsiteSchema />
         <FastLoadingBar />
         <AuthProvider>
-          <NavBar/>
+          <NavBar />
           {children}
-          <Footer/>
+          <Footer />
         </AuthProvider>
       </body>
     </html>

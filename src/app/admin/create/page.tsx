@@ -36,6 +36,7 @@ export default function CreateBlogPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [categories, setCategories] = useState<Category[]>([])
+  const [editorDisabled, setEditorDisabled] = useState(false)
   const [formData, setFormData] = useState<FormData>({
     title: '',
     content: '',
@@ -111,6 +112,9 @@ export default function CreateBlogPage() {
       e.preventDefault();
     }
 
+    // Disable the editor when typing in other fields
+    setEditorDisabled(true);
+
     const { name, value, type } = e.target
     const checked = (e.target as HTMLInputElement).checked
 
@@ -119,6 +123,11 @@ export default function CreateBlogPage() {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }))
+
+    // Keep focus on the current element
+    setTimeout(() => {
+      e.target.focus();
+    }, 0);
   }
 
   // Generate slug from title
@@ -146,18 +155,16 @@ export default function CreateBlogPage() {
         <h1 className="text-2xl font-bold ml-auto">Create New Blog Post</h1>
       </div>
 
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-6 border border-gray-200 rounded"
-        onClick={(e) => e.stopPropagation()}
-        onKeyDown={(e) => {
-          // Prevent form submission on Enter key
-          if (e.key === 'Enter' && e.target instanceof HTMLInputElement) {
+      <div className="bg-white p-6 border border-gray-200 rounded">
+        <form
+          id="blog-form"
+          onSubmit={(e) => {
             e.preventDefault();
             e.stopPropagation();
-          }
-        }}
-      >
+            handleSubmit(e);
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
         <div className="grid grid-cols-1 gap-4 mb-6">
           <div>
             <label htmlFor="title" className="block mb-1 font-medium">
@@ -169,7 +176,18 @@ export default function CreateBlogPage() {
               name="title"
               value={formData.title}
               onChange={handleChange}
-              onFocus={(e) => e.stopPropagation()}
+              onFocus={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                // Disable the editor when this field is focused
+                setEditorDisabled(true);
+                // Keep focus on this element
+                e.currentTarget.focus();
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+              }}
               className="w-full p-2 border border-gray-300 rounded"
               required
             />
@@ -199,7 +217,18 @@ export default function CreateBlogPage() {
               name="author"
               value={formData.author}
               onChange={handleChange}
-              onFocus={(e) => e.stopPropagation()}
+              onFocus={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                // Disable the editor when this field is focused
+                setEditorDisabled(true);
+                // Keep focus on this element
+                e.currentTarget.focus();
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+              }}
               className="w-full p-2 border border-gray-300 rounded"
             />
           </div>
@@ -213,7 +242,18 @@ export default function CreateBlogPage() {
               name="category"
               value={formData.category}
               onChange={handleChange}
-              onFocus={(e) => e.stopPropagation()}
+              onFocus={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                // Disable the editor when this field is focused
+                setEditorDisabled(true);
+                // Keep focus on this element
+                e.currentTarget.focus();
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+              }}
               className="w-full p-2 border border-gray-300 rounded"
             >
               <option value="">Select a category</option>
@@ -235,12 +275,30 @@ export default function CreateBlogPage() {
               value={formData.shortDescription}
               onChange={(e) => {
                 e.stopPropagation(); // Stop event propagation
+                e.preventDefault();
+                // Disable the editor when typing in this field
+                setEditorDisabled(true);
                 // Limit to 100 characters
                 if (e.target.value.length <= 100) {
                   handleChange(e);
                 }
+                // Keep focus on this element
+                setTimeout(() => {
+                  e.target.focus();
+                }, 0);
               }}
-              onFocus={(e) => e.stopPropagation()}
+              onFocus={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                // Disable the editor when this field is focused
+                setEditorDisabled(true);
+                // Keep focus on this element
+                e.currentTarget.focus();
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+              }}
               maxLength={100}
               rows={3}
               className="w-full p-2 border border-gray-300 rounded"
@@ -258,19 +316,51 @@ export default function CreateBlogPage() {
             </label>
             <div>
               <div
-                onClick={(e) => e.stopPropagation()}
-                onKeyDown={(e) => e.stopPropagation()}
-                className="summernote-container"
+                className="summernote-container relative"
+                style={{ isolation: 'isolate' }} // CSS isolation
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                }}
+                onKeyDown={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                }}
               >
-                <SummernoteEditor
-                  value={formData.content}
-                  onChange={(content: string) => {
-                    // Only update content, don't affect other form fields
-                    setFormData(prev => ({ ...prev, content }));
-                  }}
-                  height={500}
-                  placeholder="Write your content here..."
-                />
+                {/* Invisible overlay to prevent focus stealing when clicking outside editor */}
+                <div
+                  className="absolute inset-0 z-0 pointer-events-none"
+                  aria-hidden="true"
+                ></div>
+
+                {editorDisabled ? (
+                  <div className="border border-gray-300 rounded p-4 bg-gray-100 min-h-[500px] overflow-auto">
+                    <div dangerouslySetInnerHTML={{ __html: formData.content }} />
+                    <div className="mt-4 text-center">
+                      <button
+                        type="button"
+                        className="px-4 py-2 bg-blue-500 text-white rounded"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setEditorDisabled(false);
+                        }}
+                      >
+                        Click here to edit content
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <SummernoteEditor
+                    value={formData.content}
+                    onChange={(content: string) => {
+                      // Only update content, don't affect other form fields
+                      setFormData(prev => ({ ...prev, content }));
+                    }}
+                    height={500}
+                    placeholder="Write your content here..."
+                  />
+                )}
               </div>
             </div>
           </div>
@@ -285,7 +375,18 @@ export default function CreateBlogPage() {
               name="coverImage"
               value={formData.coverImage}
               onChange={handleChange}
-              onFocus={(e) => e.stopPropagation()}
+              onFocus={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                // Disable the editor when this field is focused
+                setEditorDisabled(true);
+                // Keep focus on this element
+                e.currentTarget.focus();
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+              }}
               placeholder="https://example.com/image.jpg"
               className="w-full p-2 border border-gray-300 rounded"
             />
@@ -316,7 +417,18 @@ export default function CreateBlogPage() {
               name="tags"
               value={formData.tags}
               onChange={handleChange}
-              onFocus={(e) => e.stopPropagation()}
+              onFocus={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                // Disable the editor when this field is focused
+                setEditorDisabled(true);
+                // Keep focus on this element
+                e.currentTarget.focus();
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+              }}
               className="w-full p-2 border border-gray-300 rounded"
             />
           </div>
@@ -328,8 +440,18 @@ export default function CreateBlogPage() {
               name="published"
               checked={formData.published}
               onChange={handleChange}
-              onFocus={(e) => e.stopPropagation()}
-              onClick={(e) => e.stopPropagation()}
+              onFocus={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                // Disable the editor when this field is focused
+                setEditorDisabled(true);
+                // Keep focus on this element
+                e.currentTarget.focus();
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+              }}
               className="mr-2"
             />
             <label htmlFor="published">
@@ -353,6 +475,7 @@ export default function CreateBlogPage() {
           </button>
         </div>
       </form>
+    </div>
     </div>
   )
 }
